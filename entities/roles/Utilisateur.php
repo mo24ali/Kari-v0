@@ -1,17 +1,26 @@
-<?php   
+<?php
 
-    namespace App\Entities\Roles;
-    class Utilisateur{
+namespace App\Entities\Roles;
+
+// use App\core\Database;
+use App\Repository\UseRepository;
+use Exception;
+
+class Utilisateur implements UseRepository
+
+{
         protected string $firstname;
         protected string $lastname;
         protected string $email;
 
-        
+        // protected Database $db;
+
         public function __construct(string $fn, string $ln, string $mail)
         {
-            $this->firstname = $fn;
-            $this->lastname = $ln;
-            $this->email = $mail;
+                $this->firstname = $fn;
+                $this->lastname = $ln;
+                $this->email = $mail;
+                // $this->db = Database::getInstance();
         }
 
 
@@ -19,6 +28,8 @@
 
         public function get_email()
         {
+
+                // $this->db->getConnection();
                 return $this->email;
         }
         public function get_firstname()
@@ -43,9 +54,17 @@
                 $this->lastname  = $lastname;
         }
 
-        public function __toString():string
+        public function __toString(): string
         {
-             return "Hello my name is  $this->firstname $this->lastname ";
+                return "Hello my name is  $this->firstname $this->lastname ";
         }
 
-    }   
+        public function findById()
+        {
+                try{
+                        
+                }catch(Exception $e){
+                        die($e->getMessage());
+                }
+        }
+}
