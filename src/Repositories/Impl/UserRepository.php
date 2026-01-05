@@ -1,0 +1,179 @@
+<?php
+
+namespace App\Repositories\Impl;
+
+use App\Repositories\UserInterface;
+
+use App\core\Database;
+use App\Entities\Roles\Utilisateur;
+use App\Entities\Roles\Admin;
+use App\Entities\Roles\Host;
+
+use PDO;
+
+class UserRepository implements UserInterface
+{
+    private PDO $db;
+
+    public function __construct()
+    {
+        $this->db = Database::getInstance()->getConnection();
+    }
+
+    public function findByEmail(string $email): ?array
+    {
+        $sql = 'SELECT * FROM users WHERE email = ?';
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$email]);
+
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $data ?: null;
+    }
+
+    public function findById(int $id): ?array
+    {
+        $sql = 'SELECT * FROM users WHERE id = ?';
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $data ?: null;
+    }
+
+    public function save(Utilisateur $user): void
+    {
+        $sql = "INSERT INTO users(firstname, lastname ,email, password, role, phone) 
+                    VALUES (?,?,?,?,?,?)";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->execute([
+            $user->getFirstname(),
+            $user->getLastname(),
+            $user->getEmail(),
+            $user->getPassword(),
+            $this->determineRole($user),
+            $user->getPhone()
+        ]);
+    }
+
+    private function determineRole(Utilisateur $user): string
+    {
+        if ($user instanceof Admin) {
+            return 'admin';
+        } elseif ($user instanceof Host) {
+            return 'host';
+        } else {
+            return 'traveller';
+        }
+    }
+
+    public function update(int $userId, array $data): bool|null
+    {
+        $fields = [];
+        $params = [':id' => $userId];
+
+        if (isset($data['name'])) {
+            $fields[] = 'name = :name';
+            $params[':name'] = $data['name'];
+        }
+
+        if (isset($data['phone'])) {
+            $fields[] = 'phone = :phone';
+            $params[':phone'] = $data['phone'];
+        }
+
+        if (isset($data['email'])) {
+            $fields[] = 'email = :email';
+            $params[':email'] = $data['email'];
+        }
+
+        if (empty($fields)) {
+            return false;
+        }
+
+        $sql = "UPDATE users SET " . implode(', ', $fields) . ", updated_at = NOW() WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute($params);
+    }
+
+    public function updatePassword(int $userId, string $hashedPassword): bool
+    {
+        $sql = "UPDATE users SET password = :password, updated_at = NOW() WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute([
+            ':id' => $userId,
+            ':password' => $hashedPassword
+        ]);
+    }
+
+    public function deactivate(int $userId): bool
+    {
+        $sql = "UPDATE users SET is_active = 0, updated_at = NOW() WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute([':id' => $userId]);
+    }
+
+    public function activate(int $userId): bool
+    {
+        $sql = "UPDATE users SET is_active = 1, updated_at = NOW() WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute([$userId]);
+    }
+
+    public function delete(int $id): void
+    {
+        $sql = "DELETE FROM users WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+    }
+
+    public function findAll(int $limit = 100, int $offset = 0): array
+    {
+        $sql = "SELECT * FROM users ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function findByRole(string $role, int $limit = 100, int $offset = 0): array
+    {
+        $sql = "SELECT * FROM users WHERE role = :role ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':role', $role);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function count(): int
+    {
+        $sql = "SELECT COUNT(*) as total FROM users";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) $result['total'];
+    }
+
+    public function countByRole(string $role): int
+    {
+        $sql = "SELECT COUNT(*) as total FROM users WHERE role = :role";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':role' => $role]);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) $result['total'];
+    }
+}

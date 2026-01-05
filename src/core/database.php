@@ -2,39 +2,37 @@
 
 namespace App\core;
 
-use App\config;
 use PDO;
 use PDOException;
 
 class Database
 {
-    public static ?PDO $conn;
-    public static ?Database $instance;
+    private static ?Database $instance = null;
+    private static ?PDO $conn = null;
 
     private function __construct()
     {
 
-        $config = require_once __DIR__ . "../config/connexion.php";
+        $config = require __DIR__ . '/../config/connexion.php';
         try {
             $dsn = "mysql:host={$config['host']};dbname={$config['dbname']}";
             self::$conn = new PDO($dsn, $config['username'], $config['password']);
-            echo "established";
+
+            self::$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $pe) {
-            die($pe->getMessage());
+            die("Connection Error: " . $pe->getMessage());
         }
     }
 
-    public static function getInstance()
+    public static function getInstance(): self
     {
-        if (!self::$instance) {
+        if (self::$instance === null) {
             self::$instance = new self();
         }
-
         return self::$instance;
     }
 
-
-    public function getConnection()
+    public function getConnection(): PDO
     {
         return self::$conn;
     }
