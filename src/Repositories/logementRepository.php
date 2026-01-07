@@ -58,7 +58,7 @@ class LogementRepository
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$ownerId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } 
+    }
     public function save(Logement $logement): int
     {
         $sql = "INSERT INTO logement (id_owner, price, address) 
@@ -124,6 +124,44 @@ class LogementRepository
                 ORDER BY l.price ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$minPrice, $maxPrice]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function search(array $filters): array
+    {
+        $sql = "SELECT l.*, u.firstname, u.lastname, u.email as owner_email,
+                (SELECT image_path FROM images WHERE id_logement = l.id AND is_primary = 1 LIMIT 1) as primary_image
+                FROM logement l 
+                LEFT JOIN users u ON l.id_owner = u.id 
+                WHERE 1=1";
+
+        $params = [];
+
+        // Destination search
+        if (!empty($filters['destination'])) {
+            $sql .= " AND l.address LIKE ?";
+            $params[] = '%' . $filters['destination'] . '%';
+        }
+
+        // Date availability check
+        if (!empty($filters['check_in']) && !empty($filters['check_out'])) {
+            // Exclude logements that have confirmed reservations overlapping with the requested dates
+            // Overlap exists if (ReservationStart < RequestedEnd) AND (ReservationEnd > RequestedStart)
+            $sql .= " AND l.id NOT IN (
+                SELECT id_log FROM reservation 
+                WHERE start_date < ? AND end_date > ?
+            )";
+            $startDate = $filters['check_in'];
+            $endDate = $filters['check_out'];
+
+            $params[] = $endDate;
+            $params[] = $startDate;
+        }
+
+        $sql .= " ORDER BY l.id DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

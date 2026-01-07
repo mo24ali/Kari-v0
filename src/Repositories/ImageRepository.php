@@ -68,4 +68,27 @@ class ImageRepository
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([$id]);
     }
+
+    public function findByLogementIds(array $logementIds): array
+    {
+        if (empty($logementIds)) {
+            return [];
+        }
+
+        $placeholders = str_repeat('?,', count($logementIds) - 1) . '?';
+        $sql = "SELECT * FROM images WHERE id_logement IN ($placeholders) ORDER BY is_primary DESC, id ASC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($logementIds);
+
+        $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Group by logement_id
+        $grouped = [];
+        foreach ($images as $img) {
+            $grouped[$img['id_logement']][] = $img;
+        }
+
+        return $grouped;
+    }
 }

@@ -60,6 +60,59 @@ class KariApp
                     echo "Access Denied: Admins Only";
                 }
                 break;
+            case '/reservation/cancel':
+                $controller = new \App\Controllers\ReservationController();
+                $controller->cancel();
+                break;
+            case '/favoris/add':
+                $controller = new \App\Controllers\FavorisController();
+                $controller->add();
+                break;
+            case '/favoris/remove':
+                $controller = new \App\Controllers\FavorisController();
+                $controller->remove();
+                break;
+            case '/admin/users':
+                if ($role === 'admin') {
+                    require __DIR__ . '/views/admin/users.php';
+                } else {
+                    echo "Access Denied: Admins Only";
+                }
+                break;
+            case '/admin/logements':
+                if ($role === 'admin') {
+                    require __DIR__ . '/views/admin/logements.php';
+                } else {
+                    echo "Access Denied: Admins Only";
+                }
+                break;
+            case '/admin/reclamations':
+                if ($role === 'admin') {
+                    require __DIR__ . '/views/admin/reclamations.php';
+                } else {
+                    echo "Access Denied: Admins Only";
+                }
+                break;
+            case '/reclamation/create':
+                if (!$this->auth->isAuth()) {
+                    header('Location: /login');
+                    exit;
+                }
+                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                    $userId = $_SESSION['user_id'];
+                    $logementId = $_POST['logement_id'] ?? null;
+                    $message = $_POST['message'] ?? null;
+
+                    if ($logementId && $message) {
+                        $repo = new \App\Repositories\ReclamationRepository();
+                        $service = new \App\Services\ReclamationService($repo);
+                        $service->createReclamation($userId, (int) $logementId, $message);
+                        $_SESSION['success'] = "Réclamation envoyée avec succès.";
+                    }
+                    header('Location: /reservations');
+                    exit;
+                }
+                break;
             default:
                 http_response_code(404);
                 echo "Page not found.";

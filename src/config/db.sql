@@ -12,6 +12,7 @@ drop table logement;
 drop table Review;
 drop table reservation;
 drop table Favoris;
+drop table IF EXISTS reclamation;
 
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -72,7 +73,15 @@ CREATE TABLE images (
     INDEX idx_primary (is_primary)
 );
 
-
+CREATE TABLE reclamation(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    id_user INT NOT NULL,
+    id_log INT NOT NULL,
+    message TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_user) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_log) REFERENCES logement(id) ON DELETE CASCADE
+);
 SELECT * from logement;
 SELECT * from review;
 SELECT * from reservation;

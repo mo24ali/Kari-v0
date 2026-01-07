@@ -9,15 +9,18 @@ use Exception;
 class LogementService
 {
     private LogementRepository $logementRepository;
+    private \App\Repositories\ImageRepository $imageRepository;
 
     public function __construct(LogementRepository $logementRepository)
     {
         $this->logementRepository = $logementRepository;
+        $this->imageRepository = new \App\Repositories\ImageRepository();
     }
 
     public function getAllLogements(): array
     {
-        return $this->logementRepository->findAll();
+        $logements = $this->logementRepository->findAll();
+        return $this->attachImages($logements);
     }
 
     public function getLogementById(int $id): ?Logement
@@ -27,18 +30,56 @@ class LogementService
 
     public function getLogementByIdAsArray(int $id): ?array
     {
-        return $this->logementRepository->findByIdAsArray($id);
+        $logement = $this->logementRepository->findByIdAsArray($id);
+        if ($logement) {
+            // Single fetching is fine here, or reuse attachImages
+            $images = $this->imageRepository->findByLogement($id);
+            $logement['images'] = $images;
+            if (empty($logement['primary_image']) && !empty($images)) {
+                $logement['primary_image'] = $images[0]['image_path'];
+            }
+        }
+        return $logement;
     }
 
     public function getLogementsByOwner(int $ownerId): array
     {
-        return $this->logementRepository->findByOwner($ownerId);
+        $logements = $this->logementRepository->findByOwner($ownerId);
+        return $this->attachImages($logements);
+    }
+
+    public function searchLogements(array $filters): array
+    {
+        $logements = $this->logementRepository->search($filters);
+        return $this->attachImages($logements);
+    }
+
+    private function attachImages(array $logements): array
+    {
+        if (empty($logements)) {
+            return [];
+        }
+
+        $ids = array_column($logements, 'id');
+        $imagesGrouped = $this->imageRepository->findByLogementIds($ids);
+
+        foreach ($logements as &$logement) {
+            $logementImages = $imagesGrouped[$logement['id']] ?? [];
+            $logement['images'] = $logementImages;
+
+            // Ensure primary image is set if missing BUT images exist
+            // (Repository findAll joins primary_image, but explicit check helps)
+            if (empty($logement['primary_image']) && !empty($logementImages)) {
+                $logement['primary_image'] = $logementImages[0]['image_path'];
+            }
+        }
+        return $logements;
     }
 
     public function createLogement(array $data, int $ownerId): Logement
     {
         $errors = $this->validateLogementData($data);
-        
+
         if (!empty($errors)) {
             throw new Exception(implode(" ", $errors));
         }
@@ -56,7 +97,7 @@ class LogementService
     public function updateLogement(int $id, array $data, int $ownerId): bool
     {
         $logement = $this->logementRepository->findById($id);
-        
+
         if (!$logement) {
             throw new Exception("Logement non trouvé.");
         }
@@ -78,7 +119,7 @@ class LogementService
     public function deleteLogement(int $id, int $ownerId): bool
     {
         $logement = $this->logementRepository->findById($id);
-        
+
         if (!$logement) {
             throw new Exception("Logement non trouvé.");
         }

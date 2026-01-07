@@ -65,11 +65,20 @@ class ReservationRepository
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $logementId,
-            $startDate, $startDate,
-            $endDate, $endDate,
-            $startDate, $endDate
+            $startDate,
+            $startDate,
+            $endDate,
+            $endDate,
+            $startDate,
+            $endDate
         ]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int) $result['count'] === 0;
+    }
+    public function delete(int $id): bool
+    {
+        $sql = "DELETE FROM reservation WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$id]);
     }
 }
