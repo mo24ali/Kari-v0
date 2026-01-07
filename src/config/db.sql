@@ -61,11 +61,24 @@ CREATE TABLE Favoris(
     Foreign Key (id_log) REFERENCES logement(id),
     Foreign Key (id_voy) REFERENCES users(id)
 );
+CREATE TABLE images (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    id_logement INT NOT NULL,
+    image_path VARCHAR(255) NOT NULL,
+    is_primary TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_logement) REFERENCES logement(id) ON DELETE CASCADE,
+    INDEX idx_logement (id_logement),
+    INDEX idx_primary (is_primary)
+);
 
 
 SELECT * from logement;
 SELECT * from review;
 SELECT * from reservation;
 SELECT * from users;
+
+SELECT * FROM images;
+
 
 -- alter table users add COLUMN phone varchar(8);

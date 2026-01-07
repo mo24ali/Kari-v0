@@ -1,8 +1,8 @@
 <?php
 
-namespace App\services\impl;
+namespace App\Services\Impl;
 
-use App\services\AuthService;
+use App\Services\AuthService;
 
 class SessionAuthService implements AuthService
 {
@@ -35,29 +35,48 @@ class SessionAuthService implements AuthService
 
     public function login(array $user): void
     {
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_role'] = $user['role'];
-        $_SESSION['user_email'] = $user['email'];
-        $_SESSION['user_name'] = $user['name'];
+        $_SESSION['user_id'] = $user['id'] ?? null;
+        $_SESSION['user_role'] = $user['role'] ?? 'traveller';
+        $_SESSION['user_email'] = $user['email'] ?? '';
+        $_SESSION['user_phone'] = $user['phone'] ?? '';
+
+        if (isset($user['firstname']) && isset($user['lastname'])) {
+            $_SESSION['user_name'] = $user['firstname'] . ' ' . $user['lastname'];
+        } elseif (isset($user['name'])) {
+            $_SESSION['user_name'] = $user['name'];
+        } else {
+            $_SESSION['user_name'] = 'Utilisateur';
+        }
+
+        $_SESSION['user_firstname'] = $user['firstname'] ?? '';
+        $_SESSION['user_lastname'] = $user['lastname'] ?? '';
+
         $_SESSION['user'] = $user;
-        
+
+        $_SESSION['user_permissions'] = $this->getPermissionsForRole($_SESSION['user_role']);
+
         $_SESSION['user_permissions'] = $this->getPermissionsForRole($user['role']);
-        
-        session_regenerate_id(true);
+
+        // session_regenerate_id(true);
     }
 
     public function logout(): void
     {
         $_SESSION = [];
-        
+
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params["path"], $params["domain"],
-                $params["secure"], $params["httponly"]
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params["path"],
+                $params["domain"],
+                $params["secure"],
+                $params["httponly"]
             );
         }
-        
+
         session_destroy();
     }
 
@@ -72,7 +91,7 @@ class SessionAuthService implements AuthService
     public function requireRole(string $role): void
     {
         $this->requireAuth();
-        
+
         if ($this->getUserRole() !== $role) {
             header("Location: /");
             exit;
@@ -89,7 +108,7 @@ class SessionAuthService implements AuthService
         if (!$this->isAuth()) {
             return false;
         }
-        
+
         $permissions = $_SESSION['user_permissions'] ?? [];
         return in_array($permission, $permissions);
     }

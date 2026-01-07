@@ -1,11 +1,11 @@
 <?php
 
-namespace App\services;
+namespace App\Services;
 
-use App\repositories\Impl\UserRepository;
-use App\entities\Roles\Host;
-use App\entities\Roles\Admin;
-use App\entities\Roles\Utilisateur;
+use App\Repositories\Impl\UserRepository;
+use App\Entities\Roles\Host;
+use App\Entities\Roles\Admin;
+use App\Entities\Roles\Utilisateur;
 use App\Entities\Roles\Voyageur;
 use Exception;
 
@@ -39,18 +39,17 @@ class UserService
                 throw new Exception("Mot de passe incorrect.");
             }
 
-            if (!$userData['is_active']) {
-                throw new Exception("Votre compte est désactivé. Contactez l'administrateur.");
-            }
+   
 
             return [
                 'id' => $userData['id'],
                 'email' => $userData['email'],
+                'firstname' => $userData['firstname'] ?? '',
+                'lastname' => $userData['lastname'] ?? '',
                 'name' => $userData['name'] ?? ($userData['firstname'] . ' ' . $userData['lastname']),
                 'role' => $userData['role'] ?? 'traveller',
                 'phone' => $userData['phone'] ?? null,
-                'created_at' => $userData['created_at'],
-                'is_active' => (bool)$userData['is_active']
+                'created_at' => $userData['created_at']
             ];
         } catch (Exception $e) {
             throw $e;
@@ -91,6 +90,8 @@ class UserService
         }
     }
 
+
+    //validation method
     private function validateRegistrationData(array $data): void
     {
         $errors = [];
@@ -129,7 +130,7 @@ class UserService
             throw new Exception(implode(" ", $errors));
         }
     }
-
+    //create user from the rendered data
     private function createUserFromData(array $data): Utilisateur
     {
 
@@ -161,6 +162,7 @@ class UserService
         }
     }
 
+    //check if the email exists
     public function emailExists(string $email): bool
     {
         return $this->userRepository->findByEmail($email) !== null;
@@ -200,29 +202,43 @@ class UserService
         return $this->register($data);
     }
 
-    public function deactivateUser(int $userId): bool
-    {
-        return $this->userRepository->deactivate($userId);
-    }
-
-    public function activateUser(int $userId): bool
-    {
-        return $this->userRepository->activate($userId);
-    }
-
-    // public function updateUserProfile(int $userId, array $data): bool
+    // public function deactivateUser(int $userId): bool
     // {
-    //     // Validation des données
-    //     if (isset($data['name']) && strlen($data['name']) < 2) {
-    //         throw new Exception("Le nom doit contenir au moins 2 caractères.");
-    //     }
-
-    //     if (isset($data['phone']) && !empty($data['phone']) && !preg_match('/^[0-9]{10}$/', $data['phone'])) {
-    //         throw new Exception("Numéro de téléphone invalide.");
-    //     }
-
-    //     return $this->userRepository->update($userId, $data);
+    //     return $this->userRepository->deactivate($userId);
     // }
+
+    // public function activateUser(int $userId): bool
+    // {
+    //     return $this->userRepository->activate($userId);
+    // }
+
+    public function updateUserProfile(int $userId, array $data): bool
+    {
+        if (isset($data['firstname']) && strlen($data['firstname']) < 2) {
+            throw new Exception("Le prénom doit contenir au moins 2 caractères.");
+        }
+
+        if (isset($data['lastname']) && strlen($data['lastname']) < 2) {
+            throw new Exception("Le nom doit contenir au moins 2 caractères.");
+        }
+
+        if (isset($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new Exception("Format d'email invalide.");
+        }
+
+        if (isset($data['email'])) {
+            $existingUser = $this->userRepository->findByEmail($data['email']);
+            if ($existingUser && $existingUser['id'] != $userId) {
+                throw new Exception("Cet email est déjà utilisé par un autre compte.");
+            }
+        }
+
+        if (isset($data['phone']) && !empty($data['phone']) && !preg_match('/^[0-9]{10}$/', $data['phone'])) {
+            throw new Exception("Numéro de téléphone invalide (10 chiffres requis).");
+        }
+
+        return $this->userRepository->update($userId, $data);
+    }
 
     public function changePassword(int $userId, string $currentPassword, string $newPassword): bool
     {

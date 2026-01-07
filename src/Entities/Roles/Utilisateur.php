@@ -24,8 +24,6 @@ abstract class Utilisateur
                 $this->phone = $phone;
                 $this->password = $password;
         }
-
-
         public function getFirstname(): string
         {
                 return $this->firstname;
@@ -50,11 +48,6 @@ abstract class Utilisateur
         {
                 return $this->phone;
         }
-        public function isActive(): bool
-        {
-                return $this->isActive;
-        }
-
         public function __toString(): string
         {
                 return "Hello my name is $this->firstname $this->lastname";

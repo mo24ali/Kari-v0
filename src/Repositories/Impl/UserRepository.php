@@ -75,6 +75,16 @@ class UserRepository implements UserInterface
         $fields = [];
         $params = [':id' => $userId];
 
+        if (isset($data['firstname'])) {
+            $fields[] = 'firstname = :firstname';
+            $params[':firstname'] = $data['firstname'];
+        }
+
+        if (isset($data['lastname'])) {
+            $fields[] = 'lastname = :lastname';
+            $params[':lastname'] = $data['lastname'];
+        }
+
         if (isset($data['name'])) {
             $fields[] = 'name = :name';
             $params[':name'] = $data['name'];
@@ -94,7 +104,7 @@ class UserRepository implements UserInterface
             return false;
         }
 
-        $sql = "UPDATE users SET " . implode(', ', $fields) . ", updated_at = NOW() WHERE id = :id";
+        $sql = "UPDATE users SET " . implode(', ', $fields) . " WHERE id = :id";
         $stmt = $this->db->prepare($sql);
 
         return $stmt->execute($params);
@@ -111,22 +121,7 @@ class UserRepository implements UserInterface
         ]);
     }
 
-    public function deactivate(int $userId): bool
-    {
-        $sql = "UPDATE users SET is_active = 0, updated_at = NOW() WHERE id = :id";
-        $stmt = $this->db->prepare($sql);
-
-        return $stmt->execute([':id' => $userId]);
-    }
-
-    public function activate(int $userId): bool
-    {
-        $sql = "UPDATE users SET is_active = 1, updated_at = NOW() WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-
-        return $stmt->execute([$userId]);
-    }
-
+    
     public function delete(int $id): void
     {
         $sql = "DELETE FROM users WHERE id = ?";

@@ -2,7 +2,7 @@
 
 namespace App;
 
-use App\services\AuthService;
+use App\Services\AuthService;
 
 class KariApp
 {
@@ -39,14 +39,23 @@ class KariApp
         switch ($path) {
             case '/':
             case '/index.php':
-                require '/views/index.php';
+                require __DIR__ . '/views/index.php';
                 break;
             case '/reservations':
-                require '/views/reservations.php';
+                require __DIR__ . '/views/reservations.php';
+                break;
+            case '/favoris':
+                require __DIR__ . '/views/favoris.php';
+                break;
+            case '/hote':
+                require __DIR__ . '/views/hote.php';
+                break;
+            case '/profile':
+                require __DIR__ . '/views/profile.php';
                 break;
             case '/admin':
                 if ($role === 'admin') {
-                    require '/views/admin_dashboard.php';
+                    require __DIR__ . '/views/DashboardAdmin.php';
                 } else {
                     echo "Access Denied: Admins Only";
                 }

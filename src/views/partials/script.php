@@ -1,20 +1,16 @@
    <script>
-        // Gestion du thème sombre/clair
         const themeToggle = document.getElementById('theme-toggle');
         const themeIcon = themeToggle.querySelector('i');
         
-        // Vérifier la préférence système
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const savedTheme = localStorage.getItem('theme');
         
-        // Appliquer le thème sauvegardé ou système
         if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
             document.documentElement.classList.add('dark');
             themeIcon.classList.remove('fa-moon');
             themeIcon.classList.add('fa-sun');
         }
         
-        // Toggle thème
         themeToggle.addEventListener('click', () => {
             document.documentElement.classList.toggle('dark');
             
@@ -29,23 +25,22 @@
             }
         });
         
-        // Menu utilisateur
         const userMenuBtn = document.getElementById('user-menu-btn');
         const userMenu = document.getElementById('user-menu');
         
-        userMenuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            userMenu.classList.toggle('hidden');
-        });
+        if (userMenuBtn && userMenu) {
+            userMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userMenu.classList.toggle('hidden');
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!userMenu.contains(e.target) && !userMenuBtn.contains(e.target)) {
+                    userMenu.classList.add('hidden');
+                }
+            });
+        }
         
-        // Fermer le menu en cliquant à l'extérieur
-        document.addEventListener('click', (e) => {
-            if (!userMenu.contains(e.target) && !userMenuBtn.contains(e.target)) {
-                userMenu.classList.add('hidden');
-            }
-        });
-        
-        // Gestion des favoris
         document.querySelectorAll('.fa-heart').forEach(heart => {
             heart.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -59,7 +54,6 @@
             });
         });
         
-        // Simulation de recherche
         const searchButton = document.querySelector('button:has(.fa-search)');
         if (searchButton) {
             searchButton.addEventListener('click', () => {
@@ -71,7 +65,6 @@
                     searchButton.innerHTML = originalText;
                     searchButton.disabled = false;
                     
-                    // Notification simple
                     const notification = document.createElement('div');
                     notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-custom-lg z-50';
                     notification.innerHTML = 'Recherche effectuée - 24 résultats trouvés';
@@ -84,16 +77,13 @@
             });
         }
         
-        // Pagination dashboard
         document.querySelectorAll('.w-8.h-8.border').forEach(button => {
             button.addEventListener('click', function() {
-                // Supprimer la sélection actuelle
                 document.querySelectorAll('.w-8.h-8.bg-primary').forEach(selected => {
                     selected.classList.remove('bg-primary', 'text-white');
                     selected.classList.add('border', 'border-light');
                 });
                 
-                // Sélectionner le bouton cliqué (sauf flèches)
                 if (!this.querySelector('i')) {
                     this.classList.remove('border', 'border-light');
                     this.classList.add('bg-primary', 'text-white');
