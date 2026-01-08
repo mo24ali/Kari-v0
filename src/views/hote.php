@@ -2,8 +2,8 @@
 require_once 'partials/head.php';
 require_once 'partials/nav.php';
 
-use App\Repositories\LogementRepository;
-use App\Repositories\ImageRepository;
+use App\Repositories\Impl\LogementRepository;
+use App\Repositories\Impl\ImageRepository;
 use App\Services\LogementService;
 
 $logementRepository = new LogementRepository();
@@ -13,15 +13,16 @@ $logementService = new LogementService($logementRepository);
 $userId = $_SESSION['user_id'] ?? null;
 $userRole = $_SESSION['user_role'] ?? null;
 
-if ($userRole !== 'host') {
+if ($userRole !== 'host' && $userRole !== 'admin') {
+    $_SESSION['Error'] = "Erreur : you role doesn't allow you here";
+    
     header("Location: /");
     exit;
 }
 
 $logements = $logementService->getLogementsByOwner($userId);
 
-// Optimization: Logic moved to Service (Eager Loading)
-// No longer need to loop here to fetch images.
+
 ?>
 
 <div class="min-h-screen bg-surface py-8">
@@ -36,7 +37,7 @@ $logements = $logementService->getLogementsByOwner($userId);
                 <i class="fas fa-plus mr-2"></i>Ajouter un logement
             </button>
         </div>
-
+<!-- affichage message d'erreur  -->
         <?php if (isset($_SESSION['success'])): ?>
             <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
                 <?php echo htmlspecialchars($_SESSION['success']); ?>
@@ -113,16 +114,16 @@ $logements = $logementService->getLogementsByOwner($userId);
 
         <?php endif; ?>
 
-        <!-- Reclamations Section -->
         <div class="mt-16">
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <i class="fas fa-exclamation-circle text-red-500"></i>
                 Réclamations reçues
             </h2>
             <?php
-            // Use full namespace or import at top
-            $reclamationRepo = new \App\Repositories\ReclamationRepository();
-            $reclamationService = new \App\Services\ReclamationService($reclamationRepo);
+            use App\Repositories\Impl\ReclamationRepository;
+            use App\Services\ReclamationService;
+            $reclamationRepo = new ReclamationRepository();
+            $reclamationService = new ReclamationService($reclamationRepo);
             $reclamations = $reclamationService->getReclamationsForHost($userId);
             ?>
 

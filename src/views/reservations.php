@@ -7,8 +7,8 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-use App\Repositories\ReservationRepository;
-use App\Repositories\LogementRepository;
+use App\Repositories\Impl\ReservationRepository;
+use App\Repositories\Impl\LogementRepository;
 use App\Services\BookingService;
 
 $userId = $_SESSION['user_id'];

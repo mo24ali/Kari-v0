@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Repositories\FavorisRepository;
+use App\Repositories\Impl\FavorisRepository;
 use App\Services\FavorisService;
 
 class FavorisController

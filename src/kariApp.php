@@ -3,7 +3,8 @@
 namespace App;
 
 use App\Services\AuthService;
-
+use App\Services\ReclamationService;
+use App\Repositories\Impl\ReclamationRepository;
 class KariApp
 {
     private static ?KariApp $instance = null;
@@ -104,8 +105,8 @@ class KariApp
                     $message = $_POST['message'] ?? null;
 
                     if ($logementId && $message) {
-                        $repo = new \App\Repositories\ReclamationRepository();
-                        $service = new \App\Services\ReclamationService($repo);
+                        $repo = new ReclamationRepository();
+                        $service = new ReclamationService($repo);
                         $service->createReclamation($userId, (int) $logementId, $message);
                         $_SESSION['success'] = "Réclamation envoyée avec succès.";
                     }

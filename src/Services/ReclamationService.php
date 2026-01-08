@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Repositories\ReclamationRepository;
+use App\Repositories\Impl\ReclamationRepository;
 
 class ReclamationService
 {

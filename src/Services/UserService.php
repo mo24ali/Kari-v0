@@ -13,11 +13,12 @@ class UserService
 {
     private UserRepository $userRepository;
 
+
+    
     public function __construct(UserRepository $userRepository)
     {
         $this->userRepository = $userRepository;
     }
-
     public function login(string $email, string $password): ?array
     {
         try {
@@ -55,7 +56,6 @@ class UserService
             throw $e;
         }
     }
-
     public function register(array $data): array
     {
         try {
@@ -89,8 +89,6 @@ class UserService
             throw $e;
         }
     }
-
-
     //validation method
     private function validateRegistrationData(array $data): void
     {
@@ -161,18 +159,15 @@ class UserService
                 );
         }
     }
-
     //check if the email exists
     public function emailExists(string $email): bool
     {
         return $this->userRepository->findByEmail($email) !== null;
     }
-
     public function getUserById(int $id): ?array
     {
         return $this->userRepository->findById($id);
     }
-
     public function createAdmin(string $fn, string $ln, string $email, string $name, string $password, ?string $phone = null): array
     {
         $data = [
@@ -186,7 +181,6 @@ class UserService
 
         return $this->register($data);
     }
-
     public function createHost(string $fn, string $ln, string $email, string $name, string $password, ?string $phone = null): array
     {
         $data = [
@@ -201,19 +195,16 @@ class UserService
 
         return $this->register($data);
     }
-
     // public function deactivateUser(int $userId): bool
     // {
     //     return $this->userRepository->deactivate($userId);
     // }
-
     // public function activateUser(int $userId): bool
     // {
     //     return $this->userRepository->activate($userId);
     // }
-
     public function updateUserProfile(int $userId, array $data): bool
-    {
+    { 
         if (isset($data['firstname']) && strlen($data['firstname']) < 2) {
             throw new Exception("Le prénom doit contenir au moins 2 caractères.");
         }
@@ -239,7 +230,6 @@ class UserService
 
         return $this->userRepository->update($userId, $data);
     }
-
     public function changePassword(int $userId, string $currentPassword, string $newPassword): bool
     {
         $userData = $this->userRepository->findById($userId);

@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Repositories\Impl\UserRepository;
-use App\Repositories\LogementRepository;
-use App\Repositories\ReservationRepository;
-use App\Repositories\ImageRepository;
+use App\Repositories\Impl\LogementRepository;
+use App\Repositories\Impl\ReservationRepository;
+use App\Repositories\Impl\ImageRepository;
 
 class AdminService
 {

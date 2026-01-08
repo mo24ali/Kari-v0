@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Repositories\FavorisRepository;
+use App\Repositories\Impl\FavorisRepository;
 
 class FavorisService
 {

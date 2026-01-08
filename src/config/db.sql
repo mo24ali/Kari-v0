@@ -12,7 +12,8 @@ drop table logement;
 drop table Review;
 drop table reservation;
 drop table Favoris;
-drop table IF EXISTS reclamation;
+drop table reclamations;
+drop table images;
 
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -29,6 +30,9 @@ CREATE TABLE logement (
     id_owner INT NOT NULL,
     price DOUBLE NOT NULL,
     address VARCHAR(255),
+    isReserved BOOLEAN,
+    reserved_from DATETIME,
+    resrved_to DATETIME,
     FOREIGN KEY (id_owner) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -48,8 +52,8 @@ CREATE TABLE reservation (
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_user INT NOT NULL, 
     id_log INT NOT NULL,
-    start_date DATETIME NOT NULL,
-    end_date DATETIME NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
     FOREIGN KEY (id_user) REFERENCES users(id),
     FOREIGN KEY (id_log) REFERENCES logement(id)
 );
@@ -73,7 +77,7 @@ CREATE TABLE images (
     INDEX idx_primary (is_primary)
 );
 
-CREATE TABLE reclamation(
+CREATE TABLE reclamations(
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_user INT NOT NULL,
     id_log INT NOT NULL,
@@ -82,12 +86,13 @@ CREATE TABLE reclamation(
     FOREIGN KEY (id_user) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (id_log) REFERENCES logement(id) ON DELETE CASCADE
 );
+
 SELECT * from logement;
-SELECT * from review;
+SELECT * from Review;
 SELECT * from reservation;
 SELECT * from users;
-
 SELECT * FROM images;
+SELECT * FROM reclamations;
 
 
 -- alter table users add COLUMN phone varchar(8);

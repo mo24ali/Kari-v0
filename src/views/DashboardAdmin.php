@@ -3,9 +3,9 @@ require_once 'partials/head.php';
 require_once 'partials/nav.php';
 
 use App\Repositories\Impl\UserRepository;
-use App\Repositories\LogementRepository;
-use App\Repositories\ReservationRepository;
-use App\Repositories\ImageRepository;
+use App\Repositories\Impl\LogementRepository;
+use App\Repositories\Impl\ReservationRepository;
+use App\Repositories\Impl\ImageRepository;
 use App\Services\AdminService;
 
 $userRole = $_SESSION['user_role'] ?? null;
@@ -16,12 +16,12 @@ if ($userRole !== 'admin') {
     exit;
 }
 
-$userRepository = new \App\Repositories\Impl\UserRepository();
-$logementRepository = new \App\Repositories\LogementRepository();
-$reservationRepository = new \App\Repositories\ReservationRepository();
-$imageRepository = new \App\Repositories\ImageRepository();
+$userRepository = new UserRepository();
+$logementRepository = new LogementRepository();
+$reservationRepository = new ReservationRepository();
+$imageRepository = new ImageRepository();
 
-$adminService = new \App\Services\AdminService(
+$adminService = new AdminService(
     $userRepository,
     $logementRepository,
     $reservationRepository,

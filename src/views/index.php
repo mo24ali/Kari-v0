@@ -2,9 +2,12 @@
 require_once 'partials/head.php';
 require_once 'partials/nav.php';
 
-use App\Repositories\LogementRepository;
-use App\Repositories\ImageRepository;
+use App\core\Database;
+use App\Repositories\Impl\LogementRepository;
+use App\Repositories\Impl\ImageRepository;
+use App\Repositories\Impl\FavorisRepository;
 use App\Services\LogementService;
+use App\Services\FavorisService;
 
 $logementRepository = new LogementRepository();
 $imageRepository = new ImageRepository();
@@ -16,10 +19,15 @@ $filters = [
     'destination' => $_GET['destination'] ?? null,
     'check_in' => $_GET['check_in'] ?? null,
     'check_out' => $_GET['check_out'] ?? null,
+    'max_price' => $_GET['max_price'] ?? null,
+    'min_price' => $_GET['min_price'] ?? null
 ];
 
 if (!empty($filters['destination']) || (!empty($filters['check_in']) && !empty($filters['check_out']))) {
     $logements = $logementService->searchLogements($filters);
+
+} else if (!empty($filters['max_price']) && !empty($filters['min_price'])) {
+    $logement = $logementService->searchLogementsByPrice($filters['max_price'], $filters['min_price']);
 } else {
     $logements = $logementService->getAllLogements();
 }
@@ -32,6 +40,7 @@ $isHost = $userRole === 'host';
 <section class="relative  pt-12 pb-24 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
     <div class="container mx-auto px-4 flex flex-col items-center">
         <div class="w-full max-w-5xl">
+            <!-- Hero section -->
             <div class="text-center mb-12">
                 <h1 class="text-5xl md:text-6xl font-bold tracking-tight  dark:text-white mb-6">
                     Trouvez votre séjour idéal sur <span class="text-primary">Kari</span>
@@ -40,10 +49,11 @@ $isHost = $userRole === 'host';
                     Des logements uniques, pour chaque style de vie. Réservez facilement et en toute confiance.
                 </p>
             </div>
-
+            <!-- filter search -->
             <div class=" rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-gray-700 transition-all">
-                <form method="get" action="/">
+                <form method="post" action="/logement/filter">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <!-- destination filter -->
                         <div>
                             <label
                                 class="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center">
@@ -57,7 +67,7 @@ $isHost = $userRole === 'host';
                                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
-
+                        <!-- filter by date -->
                         <div>
                             <label
                                 class="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center">
@@ -82,7 +92,7 @@ $isHost = $userRole === 'host';
                                 </div>
                             </div>
                         </div>
-
+                        <!-- filter by number of residents -->
                         <div>
                             <label
                                 class="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center">
@@ -103,8 +113,31 @@ $isHost = $userRole === 'host';
                                     class="fas fa-user-friends absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
+                        <!-- filter by price -->
+                        <div>
+                            <label
+                                class="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center">
+                                <i class="fas fa-money-alt mr-2 text-primary"></i> Price
+                            </label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="relative">
+                                    <input type="" name="min_price"
+                                        value="<?php echo isset($_GET['min_price']) ? htmlspecialchars($_GET['min_price']) : ''; ?>"
+                                        class="w-full pl-10 pr-4 py-4 bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-700 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 dark:text-white transition-all outline-none text-xs"
+                                        placeholder="Max prix" min="<?php echo '0'; ?>">
+                                    <i class="fa fa-money absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                                <div class="relative">
+                                    <input type="" name="max_price"
+                                        value="<?php echo isset($_GET['max_price']) ? htmlspecialchars($_GET['max_price']) : ''; ?>"
+                                        class="w-full pl-10 pr-4 py-4 bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-700 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 dark:text-white transition-all outline-none text-xs"
+                                        placeholder="Min prix" min="<?php echo '0'; ?>">
+                                    <i class="fa fa-money absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-
+                    <!-- filter by geographical preference -->
                     <div class="flex flex-col md:flex-row justify-between items-center gap-6">
                         <div class="flex space-x-3 overflow-x-auto pb-2 w-full md:w-auto scrollbar-hide">
                             <button type="button"
@@ -185,7 +218,7 @@ $isHost = $userRole === 'host';
                 vous.</p>
         </div>
         <?php if ($isHost): ?>
-            <a href="/logement/create"
+            <a href="/hote"
                 class="group flex items-center px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-full shadow-lg shadow-primary/25 transition-all active:scale-95 font-bold gap-2">
                 <i class="fas fa-plus group-hover:rotate-90 transition-transform duration-300"></i>
                 Ajouter un logement
@@ -194,14 +227,13 @@ $isHost = $userRole === 'host';
     </div>
 
     <?php
-    use App\Repositories\FavorisRepository;
-    use App\Services\FavorisService;
+
 
     $favorisService = new FavorisService(new FavorisRepository());
     $userFavorites = [];
     if (isset($_SESSION['user_id'])) {
         $favs = $favorisService->getUserFavoris($_SESSION['user_id']);
-        $userFavorites = array_column($favs, 'id'); // Array of favorited Logement IDs
+        $userFavorites = array_column($favs, 'id');
     }
     ?>
 
@@ -248,6 +280,7 @@ $isHost = $userRole === 'host';
 
                         <?php
                         $isFav = in_array($logement['id'], $userFavorites);
+                        // to toggle the favoris button
                         $action = $isFav ? '/favoris/remove' : '/favoris/add';
                         $iconClass = $isFav ? 'fas fa-heart text-red-500' : 'far fa-heart text-white';
                         ?>
@@ -267,6 +300,15 @@ $isHost = $userRole === 'host';
                                 class="absolute top-4 left-4 bg-primary text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">
                                 Votre annonce
                             </span>
+                        <?php elseif ($userRole === 'traveller'): ?>
+                            <form method="post" action="/logement/details">
+                                <span
+                                    class="absolute top-4 left-4 bg-primary text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">
+                                    <button type="submit">
+                                        Voir en details
+                                    </button>
+                                </span>
+                            </form>
                         <?php endif; ?>
                     </div>
 
@@ -298,15 +340,27 @@ $isHost = $userRole === 'host';
                                     <input type="hidden" name="id_log" value="<?php echo htmlspecialchars($logement['id']); ?>">
                                     <div
                                         class="grid grid-cols-2 gap-px bg-gray-200 dark:bg-gray-700 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                                        <?php
+                                        $reservedDates = $logementService->getReservedDates($logement['id']);
+                                        $disabledDates = array_map(function ($date) {
+                                            return [
+                                                'from' => $date['start_date'],
+                                                'to' => $date['end_date']
+                                            ];
+                                        }, $reservedDates);
+                                        $jsonDisabledDates = htmlspecialchars(json_encode($disabledDates), ENT_QUOTES, 'UTF-8');
+                                        ?>
                                         <div class="bg-white dark:bg-gray-800 p-3">
                                             <label class="block text-[9px] uppercase font-black text-gray-400 mb-1">Arrivée</label>
-                                            <input type="date" name="start_date" required min="<?php echo date('Y-m-d'); ?>"
-                                                class="w-full bg-transparent text-xs font-bold text-gray-900 dark:text-white outline-none">
+                                            <input type="text" name="start_date" required
+                                                class="reservation-date-start w-full bg-transparent text-xs font-bold text-gray-900 dark:text-white outline-none"
+                                                data-reserved="<?php echo $jsonDisabledDates; ?>" placeholder="Date">
                                         </div>
                                         <div class="bg-white dark:bg-gray-800 p-3">
                                             <label class="block text-[9px] uppercase font-black text-gray-400 mb-1">Départ</label>
-                                            <input type="date" name="end_date" required min="<?php echo date('Y-m-d'); ?>"
-                                                class="w-full bg-transparent text-xs font-bold text-gray-900 dark:text-white outline-none">
+                                            <input type="text" name="end_date" required
+                                                class="reservation-date-end w-full bg-transparent text-xs font-bold text-gray-900 dark:text-white outline-none"
+                                                data-reserved="<?php echo $jsonDisabledDates; ?>" placeholder="Date">
                                         </div>
                                     </div>
                                     <button type="submit"
@@ -371,12 +425,12 @@ $isHost = $userRole === 'host';
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.airbnb-img-carousel').forEach(carousel => {
-            const images = carousel.querySelectorAll('img');
+            let images = carousel.querySelectorAll('img');
             if (images.length < 2) return;
 
             let currentIndex = 0;
 
-            const updateCarousel = (newIndex) => {
+            let updateCarousel = (newIndex) => {
                 images[currentIndex].classList.remove('active');
                 images[currentIndex].style.display = 'none';
 
@@ -389,19 +443,53 @@ $isHost = $userRole === 'host';
             carousel.querySelector('.airbnb-carousel-btn.left')?.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const index = (currentIndex - 1 + images.length) % images.length;
+                let index = (currentIndex - 1 + images.length) % images.length;
                 updateCarousel(index);
             });
 
             carousel.querySelector('.airbnb-carousel-btn.right')?.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const index = (currentIndex + 1) % images.length;
+                let index = (currentIndex + 1) % images.length;
                 updateCarousel(index);
             });
         });
     });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        let commonConfig = {
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            disableMobile: "true"
+        };
+
+        document.querySelectorAll('.reservation-date-start').forEach(input => {
+            let reserved = JSON.parse(input.dataset.reserved || '[]');
+
+            flatpickr(input, {
+                ...commonConfig,
+                disable: reserved,
+                onChange: function (selectedDates, dateStr, instance) {
+                    let form = input.closest('form');
+                    let endInput = form.querySelector('.reservation-date-end');
+                    if (endInput && endInput._flatpickr) {
+                        endInput._flatpickr.set('minDate', dateStr);
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('.reservation-date-end').forEach(input => {
+            let reserved = JSON.parse(input.dataset.reserved || '[]');
+
+            flatpickr(input, {
+                ...commonConfig,
+                disable: reserved
+            });
+        });
+    });
 </script>
+
 
 <?php
 require_once 'partials/script.php';

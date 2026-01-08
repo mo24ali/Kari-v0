@@ -22,19 +22,17 @@
                     <i class="fas fa-moon text-lg"></i>
                 </button>
 
-                <a href="/hote"
+                <a href=""
                     class="hidden md:block px-4 py-2 bg-surface text-sm font-medium rounded-lg border border-light hover-lift">
-                    Devenir hôte
+                    bT
                 </a>
 
                 <?php
-                // Get user data from session
                 $userName = $_SESSION['user_name'] ?? 'Utilisateur';
                 $userEmail = $_SESSION['user_email'] ?? '';
                 $userFirstname = $_SESSION['user_firstname'] ?? '';
                 $userLastname = $_SESSION['user_lastname'] ?? '';
 
-                // Get initials for avatar
                 $initials = '';
                 if ($userFirstname && $userLastname) {
                     $initials = strtoupper(substr($userFirstname, 0, 1) . substr($userLastname, 0, 1));

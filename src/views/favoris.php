@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-use App\Repositories\FavorisRepository;
+use App\Repositories\Impl\FavorisRepository;
 use App\Services\FavorisService;
 
 $userId = $_SESSION['user_id'];

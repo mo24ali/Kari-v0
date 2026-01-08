@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repositories\Impl;
 
 use App\core\Database;
 use App\Entities\Models\Logement;
@@ -102,6 +102,7 @@ class LogementRepository
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int) $result['total'];
     }
+    // search methods for filters
     public function searchByAddress(string $searchTerm): array
     {
         $sql = "SELECT l.*, u.firstname, u.lastname, u.email as owner_email,
@@ -137,16 +138,13 @@ class LogementRepository
 
         $params = [];
 
-        // Destination search
         if (!empty($filters['destination'])) {
             $sql .= " AND l.address LIKE ?";
             $params[] = '%' . $filters['destination'] . '%';
         }
 
-        // Date availability check
         if (!empty($filters['check_in']) && !empty($filters['check_out'])) {
-            // Exclude logements that have confirmed reservations overlapping with the requested dates
-            // Overlap exists if (ReservationStart < RequestedEnd) AND (ReservationEnd > RequestedStart)
+            
             $sql .= " AND l.id NOT IN (
                 SELECT id_log FROM reservation 
                 WHERE start_date < ? AND end_date > ?
@@ -162,6 +160,14 @@ class LogementRepository
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getReservedDates(int $logementId): array
+    {
+        $sql = "SELECT start_date, end_date FROM reservation WHERE id_log = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$logementId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

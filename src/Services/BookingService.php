@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Repositories\ReservationRepository;
-use App\Repositories\LogementRepository;
+use App\Repositories\Impl\ReservationRepository;
+use App\Repositories\Impl\LogementRepository;
 use Exception;
 
 class BookingService
@@ -99,10 +99,7 @@ class BookingService
     }
     public function cancelReservation(int $reservationId, int $userId): void
     {
-        // Ideally we should check if the reservation belongs to the user
-        // But for now, we'll assume the controller/UI handles basic ownership checks or we just delete it
-        // A better approach: find the reservation, check user_id, then delete.
-        // Since findById isn't exposed in repo easily, we'll trusting the ID for now or just implementing delete.
+
 
         $this->reservationRepository->delete($reservationId);
     }

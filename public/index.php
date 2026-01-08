@@ -15,9 +15,9 @@ use App\Services\LogementService;
 use App\Services\BookingService;
 use App\Services\UploadService;
 use App\Repositories\Impl\UserRepository;
-use App\Repositories\LogementRepository;
-use App\Repositories\ReservationRepository;
-use App\Repositories\ImageRepository;
+use App\Repositories\Impl\LogementRepository;
+use App\Repositories\Impl\ReservationRepository;
+use App\Repositories\Impl\ImageRepository;
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -294,6 +294,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $requestPath === '/profile/change-p
         $_SESSION['error'] = "Erreur : " . $e->getMessage();
         header("Location: /profile");
         exit;
+    }
+}
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $requestPath === '/logement/filter') {
+    if(!$authService->isAuth()){
+        $_SESSION['error'] = "vous devez etre connecté en tant qu'utilisateur pour effectuer cette opp";
+        header("Location: /");
+        exit();
+    }
+
+    try{
+        $adress;
+
+    }catch(Exception $e){
+        $_SESSION['error'] = "Erreur: " . $e->getMessage();
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $requestPath === '/logement/details') {
+    if(!$authService->isAuth()){
+        $_SESSION['error'] = "vous devez etre connecté en tant qu'utilisateur pour effectuer cette opp";
+        header("Location: /");
+        exit();
+    }
+
+    try{
+      
+        
+
+    }catch(Exception $e){
+        $_SESSION['error'] = "Erreur: " . $e->getMessage();
     }
 }
 

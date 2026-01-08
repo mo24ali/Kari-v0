@@ -2,8 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Repositories\ReservationRepository;
-use App\Repositories\LogementRepository;
+use App\Repositories\Impl\ReservationRepository;
+use App\Repositories\Impl\LogementRepository;
 use App\Services\BookingService;
 use Exception;
 class ReservationController

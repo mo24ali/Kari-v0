@@ -2,19 +2,20 @@
 
 namespace App\Services;
 
-use App\Repositories\LogementRepository;
+use App\Repositories\Impl\LogementRepository;
 use App\Entities\Models\Logement;
+use App\Repositories\Impl\ImageRepository;
 use Exception;
 
 class LogementService
 {
     private LogementRepository $logementRepository;
-    private \App\Repositories\ImageRepository $imageRepository;
+    private $imageRepository;
 
     public function __construct(LogementRepository $logementRepository)
     {
         $this->logementRepository = $logementRepository;
-        $this->imageRepository = new \App\Repositories\ImageRepository();
+        $this->imageRepository = new ImageRepository();
     }
 
     public function getAllLogements(): array
@@ -52,6 +53,16 @@ class LogementService
     {
         $logements = $this->logementRepository->search($filters);
         return $this->attachImages($logements);
+    }
+    public function searchLogementsByPrice(int $maxPrice, int $minPrice): array
+    {
+        $logements = $this->logementRepository->findByPriceRange($minPrice, $maxPrice);
+        return $this->attachImages($logements);
+    }
+
+    public function getReservedDates(int $logementId): array
+    {
+        return $this->logementRepository->getReservedDates($logementId);
     }
 
     private function attachImages(array $logements): array
