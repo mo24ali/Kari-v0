@@ -23,10 +23,10 @@ $filters = [
     'min_price' => $_GET['min_price'] ?? null
 ];
 
-if (!empty($filters['destination']) || (!empty($filters['check_in']) && !empty($filters['check_out']))) {
+$hasFilters = !empty($filters['destination']) || !empty($filters['check_in']) || !empty($filters['check_out']) || !empty($filters['min_price']) || !empty($filters['max_price']);
+
+if ($hasFilters) {
     $logements = $logementService->searchLogements($filters);
-} else if (!empty($filters['max_price']) && !empty($filters['min_price'])) {
-    $logement = $logementService->searchLogementsByPrice($filters['max_price'], $filters['min_price']);
 } else {
     $logements = $logementService->getAllLogements();
 }
@@ -50,7 +50,7 @@ $isHost = $userRole === 'host';
             </div>
             <!-- filter search -->
             <div class=" rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-gray-700 transition-all">
-                <form method="post" action="/logement/filter">
+                <form method="get" action="/">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <!-- destination filter -->
                         <div>
@@ -120,18 +120,20 @@ $isHost = $userRole === 'host';
                             </label>
                             <div class="grid grid-cols-2 gap-2">
                                 <div class="relative">
-                                    <input type="" name="min_price"
+                                    <input type="number" name="min_price"
                                         value="<?php echo isset($_GET['min_price']) ? htmlspecialchars($_GET['min_price']) : ''; ?>"
                                         class="w-full pl-10 pr-4 py-4 bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-700 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 dark:text-white transition-all outline-none text-xs"
-                                        placeholder="Max prix" min="<?php echo '0'; ?>">
-                                    <i class="fa fa-money absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                        placeholder="Min prix" min="0">
+                                    <i
+                                        class="fa fa-money-bill-wave absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                                 </div>
                                 <div class="relative">
-                                    <input type="" name="max_price"
+                                    <input type="number" name="max_price"
                                         value="<?php echo isset($_GET['max_price']) ? htmlspecialchars($_GET['max_price']) : ''; ?>"
                                         class="w-full pl-10 pr-4 py-4 bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-700 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 dark:text-white transition-all outline-none text-xs"
-                                        placeholder="Min prix" min="<?php echo '0'; ?>">
-                                    <i class="fa fa-money absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                        placeholder="Max prix" min="0">
+                                    <i
+                                        class="fa fa-money-bill-wave absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                                 </div>
                             </div>
                         </div>
@@ -210,7 +212,7 @@ $isHost = $userRole === 'host';
     <div class="mb-12 flex flex-col sm:flex-row items-end justify-between gap-6">
         <div class="max-w-xl">
             <h2 class="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-2">
-                Logements disponibles
+                Logements disponibles <span class="text-lg font-bold text-primary">(<?= count($logements) ?>)</span>
             </h2>
             <div class="h-1.5 w-20 bg-primary rounded-full mb-4"></div>
             <p class="text-gray-500 dark:text-gray-400 font-medium">Parcourez nos meilleures offres sélectionnées pour
@@ -420,65 +422,71 @@ $isHost = $userRole === 'host';
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // Carousel Logic
         document.querySelectorAll('.airbnb-img-carousel').forEach(carousel => {
-            let images = carousel.querySelectorAll('img');
+            const images = carousel.querySelectorAll('img');
             if (images.length < 2) return;
 
             let currentIndex = 0;
 
-            let updateCarousel = (newIndex) => {
+            const updateCarousel = (newIndex) => {
+                images[currentIndex].classList.add('hidden');
                 images[currentIndex].classList.remove('active');
-                images[currentIndex].style.display = 'none';
 
                 currentIndex = newIndex;
 
+                images[currentIndex].classList.remove('hidden');
                 images[currentIndex].classList.add('active');
-                images[currentIndex].style.display = 'block';
             };
 
             carousel.querySelector('.airbnb-carousel-btn.left')?.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                let index = (currentIndex - 1 + images.length) % images.length;
-                updateCarousel(index);
+                updateCarousel((currentIndex - 1 + images.length) % images.length);
             });
 
             carousel.querySelector('.airbnb-carousel-btn.right')?.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                let index = (currentIndex + 1) % images.length;
-                updateCarousel(index);
+                updateCarousel((currentIndex + 1) % images.length);
             });
         });
-    });
 
-    document.addEventListener('DOMContentLoaded', () => {
-        let commonConfig = {
+        // Search Flatpickr
+        const checkIn = flatpickr("input[name='check_in']", {
             dateFormat: "Y-m-d",
             minDate: "today",
-            disableMobile: "true"
-        };
-
-        document.querySelectorAll('.reservation-date-start').forEach(input => {
-            let reserved = JSON.parse(input.dataset.reserved || '[]');
-
-            flatpickr(input, {
-                ...commonConfig,
-                disable: reserved,
-                onChange: function (se lectedDates, dateStr, instance) {
-                    let form = input.closest('form');
-                    let endInput = form.querySelector('.reservation-date-end');
-                    if (endInput && endInput._flatpickr) {
-                        endInput._flatpickr.set('minDate', dateStr);
-                    }
-                }
-            });
+            onChange: function (selectedDates, dateStr) {
+                checkOut.set('minDate', dateStr);
+            }
+        });
+        const checkOut = flatpickr("input[name='check_out']", {
+            dateFormat: "Y-m-d",
+            minDate: "today"
         });
 
-        document.querySelectorAll('.reservation-date-end').forEach(input => {
-            let reserved = JSON.parse(input.dataset.reserved || '[]');
+        // Reservation Flatpickr
+        const commonConfig = {
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            disableMobile: true
+        };
 
-            flatpickr(input, {
+        document.querySelectorAll('form[action="/reservation/create"]').forEach(form => {
+            const startInput = form.querySelector('.reservation-date-start');
+            const endInput = form.querySelector('.reservation-date-end');
+            const reserved = JSON.parse(startInput.dataset.reserved || '[]');
+
+            const startPicker = flatpickr(startInput, {
+                ...commonConfig,
+                disable: reserved,
+                onChange: function (selectedDates, dateStr) {
+                    endPicker.set('minDate', dateStr);
+                    endPicker.open();
+                }
+            });
+
+            const endPicker = flatpickr(endInput, {
                 ...commonConfig,
                 disable: reserved
             });

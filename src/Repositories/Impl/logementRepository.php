@@ -147,6 +147,16 @@ class LogementRepository
             $params[] = $startDate;
         }
 
+        if (!empty($filters['min_price'])) {
+            $sql .= " AND l.price >= ?";
+            $params[] = $filters['min_price'];
+        }
+
+        if (!empty($filters['max_price'])) {
+            $sql .= " AND l.price <= ?";
+            $params[] = $filters['max_price'];
+        }
+
         $sql .= " ORDER BY l.id DESC";
 
         $stmt = $this->db->prepare($sql);

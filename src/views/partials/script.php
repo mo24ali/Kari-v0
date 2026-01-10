@@ -41,39 +41,10 @@
         });
     }
 
-    document.querySelectorAll('.fa-heart').forEach(heart => {
-        heart.addEventListener('click', function (e) {
-            e.stopPropagation();
-            if (this.classList.contains('text-secondary')) {
-                this.classList.remove('text-secondary');
-                this.classList.add('text-red-500');
-            } else {
-                this.classList.remove('text-red-500');
-                this.classList.add('text-secondary');
-            }
-        });
-    });
-
     const searchButton = document.querySelector('button:has(.fa-search)');
     if (searchButton) {
-        searchButton.addEventListener('click', () => {
-            const originalText = searchButton.innerHTML;
-            searchButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Recherche...';
-            searchButton.disabled = true;
-
-            setTimeout(() => {
-                searchButton.innerHTML = originalText;
-                searchButton.disabled = false;
-
-                const notification = document.createElement('div');
-                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-custom-lg z-50';
-                notification.innerHTML = 'Recherche effectuée - 24 résultats trouvés';
-                document.body.appendChild(notification);
-
-                setTimeout(() => {
-                    notification.remove();
-                }, 3000);
-            }, 1500);
+        searchButton.addEventListener('click', (e) => {
+            // Let the form submit normally (GET request)
         });
     }
 

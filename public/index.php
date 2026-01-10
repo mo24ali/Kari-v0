@@ -41,7 +41,7 @@ $favorisService = new FavorisService(new FavorisRepository());
 
 $router = new Router();
 
-// --- Auth Middleware Helper ---
+
 $requireAuth = function () use ($authService) {
     if (!$authService->isAuth()) {
         $_SESSION['error'] = "Vous devez être connecté.";
@@ -51,7 +51,7 @@ $requireAuth = function () use ($authService) {
     return $authService->getUserId();
 };
 
-// --- Routes ---
+// routes
 
 $router->get('/', function () use ($authService) {
     require BASE_PATH . 'src/views/index.php';
@@ -76,7 +76,7 @@ $router->post('/login', function () use ($userService, $authService) {
         $email = filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL);
         $password = $_POST['password'] ?? '';
 
-        $user = $userService->login($email, $password); // Returns array currently
+        $user = $userService->login($email, $password); 
         if ($user) {
             $authService->login($user);
             $_SESSION['success'] = "Connexion réussie !";
@@ -116,7 +116,7 @@ $router->post('/signup', function () use ($userService, $authService) {
     exit;
 });
 
-// --- Functional Handlers for Features ---
+// functionalities  
 
 $router->post('/logement/add', function () use ($authService, $logementService, $uploadService, $imageRepository) {
     $userId = $authService->getUserId(); // basic auth check without redirect if needed, but we use middleware usually
@@ -143,6 +143,58 @@ $router->post('/logement/add', function () use ($authService, $logementService, 
             }
         }
         $_SESSION['success'] = "Logement ajouté !";
+        header("Location: /hote");
+    } catch (Exception $e) {
+        $_SESSION['error'] = $e->getMessage();
+        header("Location: /hote");
+    }
+    exit;
+});
+
+$router->post('/logement/update', function () use ($authService, $logementService, $uploadService, $imageRepository) {
+    if (!$authService->isAuth() || $authService->getUserRole() !== 'host') {
+        header("Location: /hote");
+        exit;
+    }
+
+    try {
+        $id = (int) ($_POST['id'] ?? 0);
+        $data = [
+            'address' => trim($_POST['address'] ?? ''),
+            'price' => $_POST['price'] ?? 0
+        ];
+        $logementService->updateLogement($id, $data, $authService->getUserId());
+
+        if (isset($_FILES['images']) && !empty($_FILES['images']['tmp_name'][0])) {
+            $uploadedPaths = $uploadService->uploadMultipleImages($_FILES['images'], $id);
+            foreach ($uploadedPaths as $imagePath) {
+                $imageRepository->save([
+                    'id_logement' => $id,
+                    'image_path' => $imagePath,
+                    'is_primary' => 0 // Newer images are not primary by default for now
+                ]);
+            }
+        }
+
+        $_SESSION['success'] = "Logement mis à jour !";
+        header("Location: /hote");
+    } catch (Exception $e) {
+        $_SESSION['error'] = $e->getMessage();
+        header("Location: /hote");
+    }
+    exit;
+});
+
+$router->post('/logement/delete', function () use ($authService, $logementService) {
+    if (!$authService->isAuth() || $authService->getUserRole() !== 'host') {
+        header("Location: /hote");
+        exit;
+    }
+
+    try {
+        $id = (int) ($_POST['id'] ?? 0);
+        $logementService->deleteLogement($id, $authService->getUserId());
+        $_SESSION['success'] = "Logement supprimé !";
         header("Location: /hote");
     } catch (Exception $e) {
         $_SESSION['error'] = $e->getMessage();
@@ -241,7 +293,6 @@ $router->post('/notifications/mark-as-read', function () use ($requireAuth) {
     $userId = $requireAuth();
     $notifRepo = new \App\Repositories\Impl\NotificationRepository();
     $notifRepo->markAllReadByUser($userId);
-    // Silent success for AJAX
     http_response_code(200);
     exit;
 });
@@ -312,7 +363,6 @@ $router->get('/receipt', function () use ($requireAuth, $reservationRepository, 
 });
 
 $router->get('/logement/details', function () use ($logementService, $authService) {
-    // Assuming AvisService will be instantiated or injected
     $avisRepository = new \App\Repositories\Impl\AvisRepository();
     $avisService = new \App\Services\AvisService($avisRepository);
 
@@ -452,13 +502,14 @@ $router->post('/admin/reclamations/delete', function () use ($authService) {
     exit;
 });
 
-// Resolve Request
 $router->resolve();
-
 
 
 function dump_die($value){
     echo "<pre>";
     var_dump($value);
     echo "</pre>";
+    die();
+
+
 }

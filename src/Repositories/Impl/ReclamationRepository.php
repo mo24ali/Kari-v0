@@ -6,7 +6,6 @@ namespace App\Repositories\Impl;
 use App\core\Database;
 
 use PDO;
-use function App\dump_die;
 
 class ReclamationRepository
 {
