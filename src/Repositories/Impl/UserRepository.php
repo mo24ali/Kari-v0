@@ -2,7 +2,7 @@
 
 namespace App\Repositories\Impl;
 
-use App\Repositories\UserInterface;
+use App\Repositories\UtilisateurInterface;
 
 use App\core\Database;
 use App\Entities\Roles\Utilisateur;
@@ -11,7 +11,7 @@ use App\Entities\Roles\Host;
 
 use PDO;
 
-class UserRepository implements UserInterface
+class UserRepository implements UtilisateurInterface
 {
     private PDO $db;
 
@@ -85,10 +85,6 @@ class UserRepository implements UserInterface
             $params[':lastname'] = $data['lastname'];
         }
 
-        if (isset($data['name'])) {
-            $fields[] = 'name = :name';
-            $params[':name'] = $data['name'];
-        }
 
         if (isset($data['phone'])) {
             $fields[] = 'phone = :phone';
@@ -121,7 +117,7 @@ class UserRepository implements UserInterface
         ]);
     }
 
-    
+
     public function delete(int $id): void
     {
         $sql = "DELETE FROM users WHERE id = ?";

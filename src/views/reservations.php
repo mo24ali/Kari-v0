@@ -42,7 +42,7 @@ $reservations = $bookingService->getUserReservations($userId);
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             <?php foreach ($reservations as $reservation):
                 $primaryImage = null;
-            ?>
+                ?>
                 <div
                     class="group flex flex-col h-full bg-white dark:bg-gray-900 rounded-[2.5rem] overflow-hidden border border-transparent dark:border-gray-800 hover:shadow-2xl transition-all duration-500">
 
@@ -102,7 +102,8 @@ $reservations = $bookingService->getUserReservations($userId);
                                     class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl transform transition-all">
                                     <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Signaler un problème</h3>
                                     <p class="text-sm text-gray-500 mb-4">Pour le logement :
-                                        <?= htmlspecialchars($reservation['address'] ?? ''); ?></p>
+                                        <?= htmlspecialchars($reservation['address'] ?? ''); ?>
+                                    </p>
 
                                     <form method="POST" action="/reclamation/create">
                                         <input type="hidden" name="logement_id" value="<?= $reservation['id_log']; ?>">
@@ -129,15 +130,110 @@ $reservations = $bookingService->getUserReservations($userId);
                                     </form>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
-</div>
+                            <div class="mt-4 pt-4 border-t dark:border-gray-800 flex flex-col gap-2">
+                                <a href="/receipt?id=<?= $reservation['id'] ?>" target="_blank"
+                                    class="w-full text-center bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-2 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
+                                    <i class="fas fa-file-invoice mr-2"></i> Reçu
+                                </a>
 
-<?php
-require_once 'partials/script.php';
-require_once 'partials/footer.php';
-?>
+                                <?php if (!empty($reservation['has_review'])): ?>
+                                    <span
+                                        class="w-full text-center text-green-600 font-bold text-xs uppercase tracking-widest py-2">
+                                        <i class="fas fa-check-circle"></i> Avis publié
+                                    </span>
+                                <?php else: ?>
+                                    <button
+                                        onclick="document.getElementById('review-modal-<?= $reservation['id']; ?>').classList.remove('hidden')"
+                                        class="w-full bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 py-2 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">
+                                        <i class="fas fa-star mr-2"></i> Noter le séjour
+                                    </button>
+
+                                    <!-- Review Modal -->
+                                    <div id="review-modal-<?= $reservation['id']; ?>"
+                                        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                                        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+                                            <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Noter votre séjour</h3>
+                                            <form method="POST" action="/review/add">
+                                                <input type="hidden" name="reservation_id" value="<?= $reservation['id']; ?>">
+                                                <div class="mb-4">
+                                                    <label
+                                                        class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Note</label>
+                                                    <div class="flex gap-2 justify-center text-2xl text-yellow-400">
+                                                        <!-- Simple star rating input -->
+                                                        <select name="rating" class="w-full p-2 border rounded">
+                                                            <option value="5">★★★★★ (5)</option>
+                                                            <option value="4">★★★★☆ (4)</option>
+                                                            <option value="3">★★★☆☆ (3)</option>
+                                                            <option value="2">★★☆☆☆ (2)</option>
+                                                            <option value="1">★☆☆☆☆ (1)</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-4">
+                                                    <label
+                                                        class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Commentaire</label>
+                                                    <textarea name="comment" rows="4"
+                                                        class="w-full p-3 border rounded-xl dark:bg-gray-900 dark:text-white"
+                                                        placeholder="Partagez votre expérience..."></textarea>
+                                                </div>
+                                                <div class="flex justify-end gap-2">
+                                                    <button type="button"
+                                                        onclick="document.getElementById('review-modal-<?= $reservation['id']; ?>').classList.add('hidden')"
+                                                        class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-xl">Annuler</button>
+                                                    <button type="submit"
+                                                        class="px-6 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark">Publier</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Cancel & Reclamation Actions (Existing) -->
+                                <form method="POST" action="/reservation/cancel" class="mt-2">
+                                    <input type="hidden" name="reservation_id" value="<?= $reservation['id']; ?>">
+                                    <button type="submit"
+                                        class="w-full text-red-500 hover:text-red-700 font-bold text-xs uppercase tracking-widest transition-all"
+                                        onclick="return confirm('Êtes-vous sûr ?');">
+                                        Annuler
+                                    </button>
+                                </form>
+
+                                <button
+                                    onclick="document.getElementById('reclamation-modal-<?= $reservation['id']; ?>').classList.remove('hidden')"
+                                    class="text-gray-400 hover:text-gray-600 text-xs text-center mt-1 underline">
+                                    Signaler un problème
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Reclamation Modal (Kept outside flex container or duplicated) -->
+                        <div id="reclamation-modal-<?= $reservation['id']; ?>"
+                            class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+                                <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Signaler un problème</h3>
+                                <form method="POST" action="/reclamation/create">
+                                    <input type="hidden" name="logement_id" value="<?= $reservation['id_log']; ?>">
+                                    <textarea name="message" required rows="4"
+                                        class="w-full p-3 border rounded-xl dark:bg-gray-900 dark:text-white mb-4"
+                                        placeholder="Décrivez le problème..."></textarea>
+                                    <div class="flex justify-end gap-2">
+                                        <button type="button"
+                                            onclick="document.getElementById('reclamation-modal-<?= $reservation['id']; ?>').classList.add('hidden')"
+                                            class="px-4 py-2 text-gray-500 rounded-xl">Annuler</button>
+                                        <button type="submit"
+                                            class="px-6 py-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700">Envoyer</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <?php
+    require_once 'partials/script.php';
+    require_once 'partials/footer.php';
+    ?>

@@ -29,9 +29,11 @@ class ReservationRepository
 
     public function findByUser(int $userId): array
     {
-        $sql = "SELECT r.*, l.address, l.price 
+        $sql = "SELECT r.*, l.address, l.price,
+                (CASE WHEN a.id IS NOT NULL THEN 1 ELSE 0 END) as has_review
                 FROM reservation r 
                 LEFT JOIN logement l ON r.id_log = l.id 
+                LEFT JOIN avis a ON r.id = a.id_reservation
                 WHERE r.id_user = ? 
                 ORDER BY r.start_date DESC";
         $stmt = $this->db->prepare($sql);
@@ -79,5 +81,14 @@ class ReservationRepository
         $sql = "DELETE FROM reservation WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([$id]);
+    }
+
+    public function findById(int $id): ?array
+    {
+        $sql = "SELECT * FROM reservation WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
     }
 }

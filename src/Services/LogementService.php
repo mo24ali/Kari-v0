@@ -26,22 +26,17 @@ class LogementService
 
     public function getLogementById(int $id): ?Logement
     {
-        return $this->logementRepository->findById($id);
-    }
-
-    public function getLogementByIdAsArray(int $id): ?array
-    {
-        $logement = $this->logementRepository->findByIdAsArray($id);
+        $logement = $this->logementRepository->findById($id);
         if ($logement) {
-            // Single fetching is fine here, or reuse attachImages
             $images = $this->imageRepository->findByLogement($id);
-            $logement['images'] = $images;
-            if (empty($logement['primary_image']) && !empty($images)) {
-                $logement['primary_image'] = $images[0]['image_path'];
+            $logement->setImages($images);
+            if (empty($logement->getPrimaryImage()) && !empty($images)) {
+                $logement->setPrimaryImage($images[0]['image_path']);
             }
         }
         return $logement;
     }
+
 
     public function getLogementsByOwner(int $ownerId): array
     {
@@ -54,34 +49,31 @@ class LogementService
         $logements = $this->logementRepository->search($filters);
         return $this->attachImages($logements);
     }
-    public function searchLogementsByPrice(int $maxPrice, int $minPrice): array
-    {
-        $logements = $this->logementRepository->findByPriceRange($minPrice, $maxPrice);
-        return $this->attachImages($logements);
-    }
 
     public function getReservedDates(int $logementId): array
     {
         return $this->logementRepository->getReservedDates($logementId);
     }
 
+    /**
+     * @param Logement[] $logements
+     * @return Logement[]
+     */
     private function attachImages(array $logements): array
     {
         if (empty($logements)) {
             return [];
         }
 
-        $ids = array_column($logements, 'id');
+        $ids = array_map(fn($l) => $l->getId(), $logements);
         $imagesGrouped = $this->imageRepository->findByLogementIds($ids);
 
-        foreach ($logements as &$logement) {
-            $logementImages = $imagesGrouped[$logement['id']] ?? [];
-            $logement['images'] = $logementImages;
+        foreach ($logements as $logement) {
+            $logementImages = $imagesGrouped[$logement->getId()] ?? [];
+            $logement->setImages($logementImages);
 
-            // Ensure primary image is set if missing BUT images exist
-            // (Repository findAll joins primary_image, but explicit check helps)
-            if (empty($logement['primary_image']) && !empty($logementImages)) {
-                $logement['primary_image'] = $logementImages[0]['image_path'];
+            if (empty($logement->getPrimaryImage()) && !empty($logementImages)) {
+                $logement->setPrimaryImage($logementImages[0]['image_path']);
             }
         }
         return $logements;

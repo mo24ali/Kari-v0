@@ -1,19 +1,26 @@
+show DATABASES;
 drop database kari;
 create database kari;
 
 use kari;
-
-show DATABASES;
 SHOW TABLEs;
 
 
-drop table users;
+
+
 drop table logement;
 drop table Review;
 drop table reservation;
 drop table Favoris;
 drop table reclamations;
 drop table images;
+drop table users;
+
+
+
+
+
+
 
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -43,7 +50,7 @@ create table Review(
     id_writer int not NULL,
     id_log int not NULL,
     data_publication DATETIME not NULL,
-    Foreign Key (id_log) REFERENCES Logement(id)
+    Foreign Key (id_log) REFERENCES logement(id) ON DELETE CASCADE
 );
 
 
@@ -54,8 +61,8 @@ CREATE TABLE reservation (
     id_log INT NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
-    FOREIGN KEY (id_user) REFERENCES users(id),
-    FOREIGN KEY (id_log) REFERENCES logement(id)
+    FOREIGN KEY (id_user) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_log) REFERENCES logement(id) ON DELETE CASCADE
 );
 
 CREATE TABLE Favoris(
@@ -63,8 +70,8 @@ CREATE TABLE Favoris(
     id_log int not NULL,
     id_voy int not null,
     date_fav DATE DEFAULT (CURRENT_DATE()),
-    Foreign Key (id_log) REFERENCES logement(id),
-    Foreign Key (id_voy) REFERENCES users(id)
+    Foreign Key (id_log) REFERENCES logement(id) ON DELETE CASCADE,
+    Foreign Key (id_voy) REFERENCES users(id) ON DELETE CASCADE
 );
 CREATE TABLE images (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -85,6 +92,26 @@ CREATE TABLE reclamations(
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_user) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (id_log) REFERENCES logement(id) ON DELETE CASCADE
+);
+
+CREATE TABLE avis (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    id_reservation INT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_reservation) REFERENCES reservation(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_review_per_reservation (id_reservation)
+);
+
+CREATE TABLE notifications (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    id_user INT NOT NULL,
+    type VARCHAR(50) NOT NULL, 
+    message TEXT NOT NULL,
+    is_read TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_user) REFERENCES users(id) ON DELETE CASCADE
 );
 
 SELECT * from logement;

@@ -22,11 +22,15 @@ class LogementRepository
                 ORDER BY l.id DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => Logement::fromArray($row), $results);
     }
+
     public function findById(int $id): ?Logement
     {
-        $sql = "SELECT l.*, u.firstname, u.lastname, u.email as owner_email 
+        $sql = "SELECT l.*, u.firstname, u.lastname, u.email as owner_email,
+                (SELECT image_path FROM images WHERE id_logement = l.id AND is_primary = 1 LIMIT 1) as primary_image 
                 FROM logement l 
                 LEFT JOIN users u ON l.id_owner = u.id 
                 WHERE l.id = ?";
@@ -35,18 +39,8 @@ class LogementRepository
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ? Logement::fromArray($result) : null;
     }
-    public function findByIdAsArray(int $id): ?array
-    {
-        $sql = "SELECT l.*, u.firstname, u.lastname, u.email as owner_email,
-                (SELECT image_path FROM images WHERE id_logement = l.id AND is_primary = 1 LIMIT 1) as primary_image
-                FROM logement l 
-                LEFT JOIN users u ON l.id_owner = u.id 
-                WHERE l.id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ?: null;
-    }
+
+
     public function findByOwner(int $ownerId): array
     {
         $sql = "SELECT l.*, u.firstname, u.lastname, u.email as owner_email,
@@ -57,8 +51,11 @@ class LogementRepository
                 ORDER BY l.id DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$ownerId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => Logement::fromArray($row), $results);
     }
+
     public function save(Logement $logement): int
     {
         $sql = "INSERT INTO logement (id_owner, price, address) 
@@ -73,6 +70,7 @@ class LogementRepository
         $logement->setId($id);
         return $id;
     }
+
     public function update(Logement $logement): bool
     {
         if ($logement->getId() === null) {
@@ -88,12 +86,14 @@ class LogementRepository
             $logement->getId()
         ]);
     }
+
     public function delete(int $id): bool
     {
         $sql = "DELETE FROM logement WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([$id]);
     }
+
     public function count(): int
     {
         $sql = "SELECT COUNT(*) as total FROM logement";
@@ -102,7 +102,7 @@ class LogementRepository
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int) $result['total'];
     }
-    // search methods for filters
+
     public function searchByAddress(string $searchTerm): array
     {
         $sql = "SELECT l.*, u.firstname, u.lastname, u.email as owner_email,
@@ -113,20 +113,11 @@ class LogementRepository
                 ORDER BY l.id DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['%' . $searchTerm . '%']);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => Logement::fromArray($row), $results);
     }
-    public function findByPriceRange(float $minPrice, float $maxPrice): array
-    {
-        $sql = "SELECT l.*, u.firstname, u.lastname, u.email as owner_email,
-                (SELECT image_path FROM images WHERE id_logement = l.id AND is_primary = 1 LIMIT 1) as primary_image
-                FROM logement l 
-                LEFT JOIN users u ON l.id_owner = u.id 
-                WHERE l.price >= ? AND l.price <= ? 
-                ORDER BY l.price ASC";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$minPrice, $maxPrice]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+
 
     public function search(array $filters): array
     {
@@ -144,7 +135,7 @@ class LogementRepository
         }
 
         if (!empty($filters['check_in']) && !empty($filters['check_out'])) {
-            
+
             $sql .= " AND l.id NOT IN (
                 SELECT id_log FROM reservation 
                 WHERE start_date < ? AND end_date > ?
@@ -160,7 +151,9 @@ class LogementRepository
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => Logement::fromArray($row), $results);
     }
 
     public function getReservedDates(int $logementId): array

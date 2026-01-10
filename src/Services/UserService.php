@@ -14,7 +14,7 @@ class UserService
     private UserRepository $userRepository;
 
 
-    
+
     public function __construct(UserRepository $userRepository)
     {
         $this->userRepository = $userRepository;
@@ -40,7 +40,7 @@ class UserService
                 throw new Exception("Mot de passe incorrect.");
             }
 
-   
+
 
             return [
                 'id' => $userData['id'],
@@ -84,7 +84,7 @@ class UserService
                 'role' => $savedUser['role'] ?? 'traveller',
                 'phone' => $savedUser['phone'] ?? null
             ];
-         
+
         } catch (Exception $e) {
             throw $e;
         }
@@ -168,43 +168,8 @@ class UserService
     {
         return $this->userRepository->findById($id);
     }
-    public function createAdmin(string $fn, string $ln, string $email, string $name, string $password, ?string $phone = null): array
-    {
-        $data = [
-            'firstname' => $fn,
-            'lastname' => $ln,
-            'email' => $email,
-            'phone' => $phone,
-            'password' => $password,
-            'role' => 'admin'
-        ];
-
-        return $this->register($data);
-    }
-    public function createHost(string $fn, string $ln, string $email, string $name, string $password, ?string $phone = null): array
-    {
-        $data = [
-            'firstname' => $fn,
-            'lastname' => $ln,
-            'email' => $email,
-            'phone' => $phone,
-            'password' => $password,
-            'confirm_password' => $password,
-            'role' => 'host'
-        ];
-
-        return $this->register($data);
-    }
-    // public function deactivateUser(int $userId): bool
-    // {
-    //     return $this->userRepository->deactivate($userId);
-    // }
-    // public function activateUser(int $userId): bool
-    // {
-    //     return $this->userRepository->activate($userId);
-    // }
     public function updateUserProfile(int $userId, array $data): bool
-    { 
+    {
         if (isset($data['firstname']) && strlen($data['firstname']) < 2) {
             throw new Exception("Le prénom doit contenir au moins 2 caractères.");
         }

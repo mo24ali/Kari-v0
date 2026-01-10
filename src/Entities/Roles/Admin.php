@@ -22,25 +22,4 @@ class Admin extends Utilisateur
         $this->role = 'admin';
     }
 
-    protected function setDefaultPermissions(): void
-    {
-        $this->permissions = [
-            'manage_all_users',
-            'create_user',
-            'edit_user',
-            'delete_user',
-            'suspend_user',
-            'manage_all_content',
-            'approve_content',
-            'delete_any_content',
-            'access_admin_panel',
-            'manage_system_settings',
-            'view_analytics',
-            'manage_payments',
-            'manage_reports',
-            'approve_listings',
-            'feature_listings',
-            'manage_categories'
-        ];
-    }
 }

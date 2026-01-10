@@ -10,6 +10,9 @@ class Logement
     private int $idOwner;
     private float $price;
     private ?string $address = null;
+    private array $images = [];
+    private ?string $primaryImage = null;
+    private ?array $owner = null;
 
     public function __construct(int $idOwner, float $price, ?string $address = null, ?int $id = null)
     {
@@ -19,11 +22,11 @@ class Logement
         $this->id = $id;
     }
 
+    // getters / setters
     public function getId(): ?int
     {
         return $this->id;
     }
-
     public function setId(int $id): void
     {
         $this->id = $id;
@@ -34,21 +37,14 @@ class Logement
         return $this->idOwner;
     }
 
-    public function setIdOwner(int $idOwner): void
-    {
-        $this->idOwner = $idOwner;
-    }
-
     public function getPrice(): float
     {
         return $this->price;
     }
-
     public function setPrice(float $price): void
     {
-        if ($price <= 0) {
+        if ($price <= 0)
             throw new Exception("Le prix doit être positif.");
-        }
         $this->price = $price;
     }
 
@@ -56,10 +52,36 @@ class Logement
     {
         return $this->address;
     }
-
     public function setAddress(?string $address): void
     {
         $this->address = $address;
+    }
+
+    public function getImages(): array
+    {
+        return $this->images;
+    }
+    public function setImages(array $images): void
+    {
+        $this->images = $images;
+    }
+
+    public function getPrimaryImage(): ?string
+    {
+        return $this->primaryImage;
+    }
+    public function setPrimaryImage(?string $image): void
+    {
+        $this->primaryImage = $image;
+    }
+
+    public function getOwner(): ?array
+    {
+        return $this->owner;
+    }
+    public function setOwner(?array $owner): void
+    {
+        $this->owner = $owner;
     }
 
     public function toArray(): array
@@ -68,17 +90,38 @@ class Logement
             'id' => $this->id,
             'id_owner' => $this->idOwner,
             'price' => $this->price,
-            'address' => $this->address
+            'address' => $this->address,
+            'images' => $this->images,
+            'primary_image' => $this->primaryImage,
+            'owner' => $this->owner
         ];
     }
 
     public static function fromArray(array $data): self
     {
-        return new self(
-            $data['id_owner'] ?? $data['idOwner'],
-            $data['price'],
+        $logement = new self(
+            (int) ($data['id_owner'] ?? $data['idOwner']),
+            (float) $data['price'],
             $data['address'] ?? null,
-            $data['id'] ?? null
+            isset($data['id']) ? (int) $data['id'] : null
         );
+
+        if (isset($data['owner_email'])) {
+            $logement->setOwner([
+                'firstname' => $data['firstname'] ?? '',
+                'lastname' => $data['lastname'] ?? '',
+                'email' => $data['owner_email'] ?? ''
+            ]);
+        }
+
+        if (isset($data['primary_image'])) {
+            $logement->setPrimaryImage($data['primary_image']);
+        }
+
+        if (isset($data['images'])) {
+            $logement->setImages($data['images']);
+        }
+
+        return $logement;
     }
 }

@@ -5,7 +5,6 @@ namespace App\Entities\Roles;
 use App\Repositories\Impl\UserRepository;
 
 abstract class Utilisateur
-
 {
         protected string $firstname;
         protected string $lastname;
@@ -13,7 +12,6 @@ abstract class Utilisateur
         protected string $role;
         protected string $phone;
         protected string $password;
-        protected array $permissions = [];
 
 
         public function __construct(string $fn, string $ln, string $mail, $phone, $password)
@@ -47,9 +45,5 @@ abstract class Utilisateur
         public function getPhone(): string
         {
                 return $this->phone;
-        }
-        public function __toString(): string
-        {
-                return "Hello my name is $this->firstname $this->lastname";
         }
 }

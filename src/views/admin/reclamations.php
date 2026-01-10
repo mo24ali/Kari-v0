@@ -1,79 +1,81 @@
 <?php
-require_once __DIR__ . '/../partials/head.php';
-require_once __DIR__ . '/../partials/nav.php';
+$title = "Gestion Réclamations - Admin KARI";
+ob_start();
 
-use App\Repositories\ReclamationRepository;
-use App\Services\ReclamationService;
-
-$repo = new ReclamationRepository();
-$service = new ReclamationService($repo);
-$reclamations = $service->getAllReclamations();
+use App\Repositories\Impl\ReclamationRepository;
+$reclamationRepo = new ReclamationRepository();
+$reclamations = $reclamationRepo->findAll();
 ?>
 
-<div class="container mx-auto px-4 py-8">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Gestion des Réclamations</h1>
-        <p class="text-gray-500">Vue d'ensemble de toutes les réclamations de la plateforme.</p>
+<div class="px-4 py-8 max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Gestion des Réclamations</h1>
+        <a href="/admin" class="text-gray-600 hover:text-gray-900">Retour Dashboard</a>
     </div>
 
-    <div
-        class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
-                        <th class="p-5 font-bold text-gray-500 dark:text-gray-300 text-sm uppercase tracking-wider">Date
+    <?php if (empty($reclamations)): ?>
+        <div class="text-center py-12 bg-white rounded-xl shadow">
+            <p class="text-gray-500">Aucune réclamation enregistrée.</p>
+        </div>
+    <?php else: ?>
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Auteur
                         </th>
-                        <th class="p-5 font-bold text-gray-500 dark:text-gray-300 text-sm uppercase tracking-wider">
-                            Voyageur</th>
-                        <th class="p-5 font-bold text-gray-500 dark:text-gray-300 text-sm uppercase tracking-wider">Hôte
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Logement
                         </th>
-                        <th class="p-5 font-bold text-gray-500 dark:text-gray-300 text-sm uppercase tracking-wider">
-                            Logement</th>
-                        <th class="p-5 font-bold text-gray-500 dark:text-gray-300 text-sm uppercase tracking-wider">
-                            Message</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
+                        </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                    <?php if (empty($reclamations)): ?>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <?php foreach ($reclamations as $reclamation): ?>
                         <tr>
-                            <td colspan="5" class="p-8 text-center text-gray-500">Aucune réclamation enregistrée.</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <?= date('d/m/Y', strtotime($reclamation['created_at'])) ?>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">
+                                    <?= htmlspecialchars($reclamation['firstname'] . ' ' . $reclamation['lastname']) ?>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900"><?= htmlspecialchars($reclamation['address']) ?></div>
+                                <div class="text-xs text-gray-500">Hôte:
+                                    <?= htmlspecialchars($reclamation['owner_firstname'] . ' ' . $reclamation['owner_lastname']) ?>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-sm text-gray-900 line-clamp-2"><?= htmlspecialchars($reclamation['message']) ?>
+                                </p>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <form action="/admin/reclamations/notify" method="POST" class="inline"
+                                    onsubmit="return confirm('Notifier l\'hôte ?');">
+                                    <input type="hidden" name="id" value="<?= $reclamation['id'] ?>">
+                                    <button type="submit" class="text-blue-600 hover:text-blue-900 mr-2">Notifier Hôte</button>
+                                </form>
+                                <form action="/admin/reclamations/delete" method="POST" class="inline"
+                                    onsubmit="return confirm('Confirmer la suppression ?');">
+                                    <input type="hidden" name="id" value="<?= $reclamation['id'] ?>">
+                                    <button type="submit" class="text-red-600 hover:text-red-900">Supprimer</button>
+                                </form>
+                            </td>
+                            </td>
                         </tr>
-                    <?php else: ?>
-                        <?php foreach ($reclamations as $reclamation): ?>
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                                <td class="p-5 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                                    <?= date('d/m/Y', strtotime($reclamation['created_at'])); ?>
-                                </td>
-                                <td class="p-5">
-                                    <div class="font-bold text-gray-900 dark:text-white">
-                                        <?= htmlspecialchars($reclamation['firstname'] . ' ' . $reclamation['lastname']); ?>
-                                    </div>
-                                </td>
-                                <td class="p-5">
-                                    <div class="text-sm text-gray-600 dark:text-gray-400">
-                                        <?= htmlspecialchars(($reclamation['owner_firstname'] ?? '') . ' ' . ($reclamation['owner_lastname'] ?? '')); ?>
-                                    </div>
-                                </td>
-                                <td class="p-5 text-sm text-gray-600 dark:text-gray-400">
-                                    <?= htmlspecialchars($reclamation['address']); ?>
-                                </td>
-                                <td class="p-5">
-                                    <div
-                                        class="max-w-md text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
-                                        <?= nl2br(htmlspecialchars($reclamation['message'])); ?>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
-    </div>
+    <?php endif; ?>
 </div>
 
 <?php
-require_once __DIR__ . '/../partials/script.php';
-require_once __DIR__ . '/../partials/footer.php';
+$content = ob_get_clean();
+require_once __DIR__ . '/../layout.php';
 ?>

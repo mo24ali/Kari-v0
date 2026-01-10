@@ -5,7 +5,7 @@ namespace App\Repositories;
 
 use App\Entities\Roles\Utilisateur;
 
-interface UserInterface
+interface UtilisateurInterface
 {
 
     public function findByEmail(string $email): ?array;

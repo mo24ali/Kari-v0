@@ -22,10 +22,57 @@
                     <i class="fas fa-moon text-lg"></i>
                 </button>
 
-                <a href=""
-                    class="hidden md:block px-4 py-2 bg-surface text-sm font-medium rounded-lg border border-light hover-lift">
-                    bT
                 </a>
+
+                <?php
+                // Fetch unread notifications
+                $unreadCount = 0;
+                if ($authService->isAuth()) {
+                    $notifRepo = new \App\Repositories\Impl\NotificationRepository();
+                    $notifService = new \App\Services\NotificationService($notifRepo);
+                    $unreadCount = $notifService->getUnreadCount($authService->getUserId());
+                }
+                ?>
+                <div class="relative">
+                    <button id="notif-btn" class="p-2 rounded-lg hover:bg-surface transition-colors">
+                        <i class="fas fa-bell text-lg <?php echo $unreadCount > 0 ? 'text-primary' : ''; ?>"></i>
+                        <?php if ($unreadCount > 0): ?>
+                            <span
+                                class="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white">
+                                <?= $unreadCount > 9 ? '9+' : $unreadCount ?>
+                            </span>
+                        <?php endif; ?>
+                    </button>
+
+                    <div id="notif-dropdown"
+                        class="absolute right-0 mt-2 w-80 bg-surface rounded-lg shadow-custom-lg border border-light hidden z-50">
+                        <div class="p-4 border-b border-light font-bold flex justify-between items-center">
+                            <span>Notifications</span>
+                            <?php if ($unreadCount > 0): ?>
+                                <button onclick="markAllAsRead()" class="text-xs text-primary font-normal">Tout marquer
+                                    lu</button>
+                            <?php endif; ?>
+                        </div>
+                        <div class="max-h-96 overflow-y-auto">
+                            <?php
+                            if ($authService->isAuth()) {
+                                $notifications = $notifService->getUserNotifications($authService->getUserId());
+                                if (empty($notifications)) {
+                                    echo '<div class="p-8 text-center text-secondary italic">Aucune notification</div>';
+                                } else {
+                                    foreach ($notifications as $n) {
+                                        $bgClass = $n->isRead() ? '' : 'bg-blue-50 dark:bg-blue-900/10';
+                                        echo "<div class='p-4 border-b border-light hover:bg-surface-secondary transition-colors $bgClass'>
+                                                <div class='text-sm font-medium'>" . htmlspecialchars($n->getMessage()) . "</div>
+                                                <div class='text-[10px] text-secondary mt-1'>" . $n->getCreatedAt() . "</div>
+                                              </div>";
+                                    }
+                                }
+                            }
+                            ?>
+                        </div>
+                    </div>
+                </div>
 
                 <?php
                 $userName = $_SESSION['user_name'] ?? 'Utilisateur';

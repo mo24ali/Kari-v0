@@ -25,7 +25,6 @@ $filters = [
 
 if (!empty($filters['destination']) || (!empty($filters['check_in']) && !empty($filters['check_out']))) {
     $logements = $logementService->searchLogements($filters);
-
 } else if (!empty($filters['max_price']) && !empty($filters['min_price'])) {
     $logement = $logementService->searchLogementsByPrice($filters['max_price'], $filters['min_price']);
 } else {
@@ -252,7 +251,7 @@ $isHost = $userRole === 'host';
 
                     <div class="relative aspect-[4/5] overflow-hidden rounded-[2rem] m-2.5">
                         <div class="airbnb-img-carousel h-full w-full relative">
-                            <?php $carouselImages = $logement['images'] ?? []; ?>
+                            <?php $carouselImages = $logement->getImages() ?? []; ?>
                             <?php if (!empty($carouselImages)): ?>
                                 <?php foreach ($carouselImages as $idx => $img): ?>
                                     <img src="<?php echo htmlspecialchars($img['image_path']); ?>"
@@ -279,7 +278,7 @@ $isHost = $userRole === 'host';
                         </div>
 
                         <?php
-                        $isFav = in_array($logement['id'], $userFavorites);
+                        $isFav = in_array($logement->getId(), $userFavorites);
                         // to toggle the favoris button
                         $action = $isFav ? '/favoris/remove' : '/favoris/add';
                         $iconClass = $isFav ? 'fas fa-heart text-red-500' : 'far fa-heart text-white';
@@ -287,35 +286,31 @@ $isHost = $userRole === 'host';
                         <div class="absolute top-4 right-4 z-10">
                             <form method="POST" action="<?php echo $action; ?>">
                                 <input type="hidden" name="logement_id"
-                                    value="<?php echo htmlspecialchars($logement['id']); ?>">
+                                    value="<?php echo htmlspecialchars($logement->getId()); ?>">
                                 <button type="submit"
                                     class="p-2 rounded-full bg-black/20 hover:bg-white/20 backdrop-blur-sm transition-all hover:scale-110 group-list-btn">
                                     <i class="<?php echo $iconClass; ?> text-2xl drop-shadow-md"></i>
                                 </button>
                             </form>
                         </div>
-
-                        <?php if ($userRole === 'host' && $logement['id_owner'] == ($_SESSION['user_id'] ?? null)): ?>
+                        <?php if ($userRole === 'host' && $logement->getIdOwner() == ($_SESSION['user_id'] ?? null)): ?>
                             <span
                                 class="absolute top-4 left-4 bg-primary text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">
                                 Votre annonce
                             </span>
-                        <?php elseif ($userRole === 'traveller'): ?>
-                            <form method="post" action="/logement/details">
-                                <span
-                                    class="absolute top-4 left-4 bg-primary text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">
-                                    <button type="submit">
-                                        Voir en details
-                                    </button>
-                                </span>
-                            </form>
                         <?php endif; ?>
+
+                        <a href="/logement/details?id=<?= $logement->getId() ?>"
+                            class="absolute top-4 left-4 bg-primary text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-primary-dark transition-colors <?php echo ($userRole === 'host' && $logement->getIdOwner() == ($_SESSION['user_id'] ?? null)) ? 'mt-10' : ''; ?>">
+                            Voir en détails
+                        </a>
+
                     </div>
 
                     <div class="px-5 pb-6 flex flex-col flex-grow">
                         <div class="flex justify-between items-start mb-2">
                             <h3 class="font-bold text-lg text-gray-900 dark:text-white truncate">
-                                <?php echo htmlspecialchars($logement['address'] ?? "Magnifique Logement"); ?>
+                                <?php echo htmlspecialchars($logement->getAddress() ?? "Magnifique Logement"); ?>
                             </h3>
                             <div class="flex items-center gap-1 shrink-0 bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-lg">
                                 <i class="fas fa-star text-[10px] text-yellow-500"></i>
@@ -325,23 +320,24 @@ $isHost = $userRole === 'host';
 
                         <p class="text-gray-500 dark:text-gray-400 text-sm mb-6 flex items-center gap-1">
                             <i class="fas fa-map-marker-alt text-[10px]"></i>
-                            <?php echo htmlspecialchars($logement['address'] ?? 'France'); ?>
+                            <?php echo htmlspecialchars($logement->getAddress() ?? 'France'); ?>
                         </p>
 
                         <div class="mt-auto space-y-4">
                             <div class="flex items-baseline gap-1 text-gray-900 dark:text-white">
-                                <span class="text-2xl font-black"><?php echo number_format($logement['price'], 0, ',', ' '); ?>
+                                <span
+                                    class="text-2xl font-black"><?php echo number_format($logement->getPrice(), 0, ',', ' '); ?>
                                     €</span>
                                 <span class="text-sm font-medium text-gray-500 dark:text-gray-400">/ nuit</span>
                             </div>
 
-                            <?php if ($userRole && $userRole !== 'host' && $logement['id_owner'] != ($_SESSION['user_id'] ?? 0)): ?>
+                            <?php if ($userRole && $userRole !== 'host' && $logement->getIdOwner() != ($_SESSION['user_id'] ?? 0)): ?>
                                 <form method="POST" action="/reservation/create" class="space-y-3">
-                                    <input type="hidden" name="id_log" value="<?php echo htmlspecialchars($logement['id']); ?>">
+                                    <input type="hidden" name="id_log" value="<?php echo htmlspecialchars($logement->getId()); ?>">
                                     <div
                                         class="grid grid-cols-2 gap-px bg-gray-200 dark:bg-gray-700 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
                                         <?php
-                                        $reservedDates = $logementService->getReservedDates($logement['id']);
+                                        $reservedDates = $logementService->getReservedDates($logement->getId());
                                         $disabledDates = array_map(function ($date) {
                                             return [
                                                 'from' => $date['start_date'],
@@ -469,7 +465,7 @@ $isHost = $userRole === 'host';
             flatpickr(input, {
                 ...commonConfig,
                 disable: reserved,
-                onChange: function (selectedDates, dateStr, instance) {
+                onChange: function (se lectedDates, dateStr, instance) {
                     let form = input.closest('form');
                     let endInput = form.querySelector('.reservation-date-end');
                     if (endInput && endInput._flatpickr) {
