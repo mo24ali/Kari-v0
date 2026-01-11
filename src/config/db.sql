@@ -122,4 +122,16 @@ SELECT * FROM images;
 SELECT * FROM reclamations;
 
 
+
+
+-- a view that shows the list of rental addresses with the reclamations they received
+create or replace view log_reclamation as 
+    select l.address , r.message from 
+    logement l 
+    join reclamations r
+    on l.id = r.id_log;
+
+
+
+select * from log_reclamation;
 -- alter table users add COLUMN phone varchar(8);

@@ -28,7 +28,6 @@
 
                 <?php if ($authService->isAuth()): ?>
                     <?php
-                    // Fetch unread notifications
                     $unreadCount = 0;
                     $notifRepo = new \App\Repositories\Impl\NotificationRepository();
                     $notifService = new \App\Services\NotificationService($notifRepo);

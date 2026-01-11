@@ -28,7 +28,7 @@ class Router
         $handler = $this->routes[$method][$path] ?? null;
 
         if ($handler) {
-            call_user_func($handler);
+            $handler();
         } else {
             $this->handleNotFound();
         }
