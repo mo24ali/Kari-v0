@@ -7,7 +7,7 @@ use App\Repositories\Impl\LogementRepository;
 use App\Repositories\Impl\ReservationRepository;
 use App\Repositories\Impl\ImageRepository;
 use App\core\Database;
-
+use PDO;
 class AdminService
 {
     private UserRepository $userRepository;
@@ -39,8 +39,11 @@ class AdminService
             'total_reviews' => $this->getTotalReviews(),
             'total_favoris' => $this->getTotalFavoris(),
             'total_images' => $this->getTotalImages(),
-            'recent_users' => $this->userRepository->findAll(10, 0),
+            'total_revenue' => $this->getTotalRevenue(),
+            'total_reserved_logements' => $this->getReservedLogementsCount(),
+            'recent_users' => $this->userRepository->findAll(),
             'recent_logements' => $this->logementRepository->findAll(),
+            'recent_reservations' => $this->getRecentReservations(5),
             'users_by_role' => [
                 'host' => $this->userRepository->countByRole('host'),
                 'traveller' => $this->userRepository->countByRole('traveller'),
@@ -65,7 +68,7 @@ class AdminService
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare($sql);
         $stmt->execute();
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int) $result['total'];
     }
 
@@ -75,7 +78,7 @@ class AdminService
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare($sql);
         $stmt->execute();
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int) $result['total'];
     }
 
@@ -85,7 +88,7 @@ class AdminService
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare($sql);
         $stmt->execute();
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int) $result['total'];
     }
 
@@ -95,7 +98,43 @@ class AdminService
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare($sql);
         $stmt->execute();
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int) $result['total'];
+    }
+
+    private function getTotalRevenue(): float
+    {
+        $sql = "SELECT SUM(l.price * (DATEDIFF(r.end_date, r.start_date) + 1)) as total 
+                FROM reservation r 
+                JOIN logement l ON r.id_log = l.id";
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (float) ($result['total'] ?? 0);
+    }
+
+    private function getReservedLogementsCount(): int
+    {
+        $sql = "SELECT COUNT(DISTINCT id_log) as total FROM reservation";
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) $result['total'];
+    }
+
+    private function getRecentReservations(int $limit): array
+    {
+        $sql = "SELECT r.*, l.address, u.firstname, u.lastname, l.price 
+                FROM reservation r 
+                JOIN logement l ON r.id_log = l.id 
+                JOIN users u ON r.id_user = u.id 
+                ORDER BY r.id DESC LIMIT ?";
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare($sql);
+        $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

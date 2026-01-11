@@ -28,6 +28,8 @@
 
                 <?php if ($authService->isAuth()): ?>
                     <?php
+                    // use \App\Repositories\Impl\NotificationRepository;
+                    // use \App\Services\NotificationService;
                     $unreadCount = 0;
                     $notifRepo = new \App\Repositories\Impl\NotificationRepository();
                     $notifService = new \App\Services\NotificationService($notifRepo);

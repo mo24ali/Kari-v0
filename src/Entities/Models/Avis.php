@@ -8,7 +8,6 @@ class Avis
     private int $rating;
     private ?string $comment;
     private ?string $createdAt = null;
-
     private ?string $authorName = null;
 
     public function __construct(int $idReservation, int $rating, ?string $comment = null, ?string $createdAt = null)
@@ -49,7 +48,8 @@ class Avis
         $this->authorName = $name;
     }
 
-
+    // from array to Avis get data as an array and to create the object , you can find more of it in pther entties
+    
     public static function fromArray(array $data): self
     {
         $avis = new self(

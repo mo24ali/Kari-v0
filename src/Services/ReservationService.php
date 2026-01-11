@@ -6,7 +6,7 @@ use App\Repositories\Impl\ReservationRepository;
 use App\Repositories\Impl\LogementRepository;
 use Exception;
 
-class BookingService
+class ReservationService
 {
     private ReservationRepository $reservationRepository;
     private LogementRepository $logementRepository;
@@ -52,6 +52,7 @@ class BookingService
         ];
 
         $id = $this->reservationRepository->save($reservationData);
+
         return ['id' => $id, 'message' => 'Réservation créée avec succès'];
     }
 

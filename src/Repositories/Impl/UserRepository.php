@@ -125,7 +125,7 @@ class UserRepository implements UtilisateurInterface
         $stmt->execute([$id]);
     }
 
-    public function findAll(int $limit = 100, int $offset = 0): array
+    public function findAll(int $limit = 50, int $offset = 0): array
     {
         $sql = "SELECT * FROM users ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
         $stmt = $this->db->prepare($sql);
@@ -136,7 +136,7 @@ class UserRepository implements UtilisateurInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function findByRole(string $role, int $limit = 100, int $offset = 0): array
+    public function findByRole(string $role, int $limit = 50, int $offset = 0): array
     {
         $sql = "SELECT * FROM users WHERE role = :role ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
         $stmt = $this->db->prepare($sql);
@@ -160,10 +160,9 @@ class UserRepository implements UtilisateurInterface
 
     public function countByRole(string $role): int
     {
-        $sql = "SELECT COUNT(*) as total FROM users WHERE role = :role";
+        $sql = "SELECT COUNT(*) as total FROM users WHERE role = ?";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':role' => $role]);
-
+        $stmt->execute([$role]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int) $result['total'];
     }

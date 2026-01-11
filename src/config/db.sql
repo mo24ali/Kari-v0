@@ -131,7 +131,11 @@ create or replace view log_reclamation as
     join reclamations r
     on l.id = r.id_log;
 
-
+create or replace view reserved_rentals AS
+    select * from logement where `isReserved` is not NULL;
 
 select * from log_reclamation;
+
+select * from reserved_rentals;
+
 -- alter table users add COLUMN phone varchar(8);

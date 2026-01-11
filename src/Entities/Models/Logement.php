@@ -10,9 +10,9 @@ class Logement
     private int $idOwner;
     private float $price;
     private ?string $address = null;
-    private array $images = [];
+    private array $images = []; //let it be array of links
     private ?string $primaryImage = null;
-    private ?array $owner = null;
+    private ?array $owner = null;//let it be bunch of names stored into an array
 
     public function __construct(int $idOwner, float $price, ?string $address = null, ?int $id = null)
     {
@@ -83,7 +83,7 @@ class Logement
     {
         $this->owner = $owner;
     }
-
+    //parse object data to array
     public function toArray(): array
     {
         return [
@@ -96,7 +96,7 @@ class Logement
             'owner' => $this->owner
         ];
     }
-
+    //create new objects out of an array
     public static function fromArray(array $data): self
     {
         $logement = new self(

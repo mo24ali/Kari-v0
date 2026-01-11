@@ -10,7 +10,7 @@ use App\Core\Router;
 use App\Services\Impl\SessionAuthService;
 use App\Services\UserService;
 use App\Services\LogementService;
-use App\Services\BookingService;
+use App\Services\ReservationService;
 use App\Services\UploadService;
 use App\Repositories\Impl\UserRepository;
 use App\Repositories\Impl\LogementRepository;
@@ -20,9 +20,6 @@ use App\Services\FavorisService;
 use App\Repositories\Impl\FavorisRepository;
 use App\Repositories\Impl\ReclamationRepository;
 use App\Repositories\Impl\NotificationRepository;
-
-
-
 
 class KariApp
 {
@@ -52,7 +49,7 @@ class KariApp
         $logementRepository = new LogementRepository();
         $logementService = new LogementService($logementRepository);
         $reservationRepository = new ReservationRepository();
-        $bookingService = new BookingService($reservationRepository, $logementRepository);
+        $reservationService = new ReservationService($reservationRepository, $logementRepository);
         $imageRepository = new ImageRepository();
         $uploadService = new UploadService();
         $favorisService = new FavorisService(new FavorisRepository());
@@ -219,7 +216,7 @@ class KariApp
             exit;
         });
 
-        $router->post('/reservation/create', function () use ($requireAuth, $bookingService) {
+        $router->post('/reservation/create', function () use ($requireAuth, $reservationService) {
             $userId = $requireAuth();
             try {
                 $data = [
@@ -227,7 +224,7 @@ class KariApp
                     'start_date' => $_POST['start_date'] ?? '',
                     'end_date' => $_POST['end_date'] ?? ''
                 ];
-                $bookingService->createReservation($data, $userId);
+                $reservationService->createReservation($data, $userId);
                 $_SESSION['success'] = "Réservation créée !";
                 header("Location: /reservations");
             } catch (Exception $e) {
@@ -237,11 +234,11 @@ class KariApp
             exit;
         });
 
-        $router->post('/reservation/cancel', function () use ($requireAuth, $bookingService) {
+        $router->post('/reservation/cancel', function () use ($requireAuth, $reservationService) {
             $userId = $requireAuth();
             $reservationId = $_POST['reservation_id'] ?? null;
             if ($reservationId) {
-                $bookingService->cancelReservation((int) $reservationId, $userId);
+                $reservationService->cancelReservation((int) $reservationId, $userId);
             }
             header("Location: /reservations");
             exit;
@@ -425,6 +422,9 @@ class KariApp
             exit;
         });
 
+
+
+
         $router->get('/admin/users', function () use ($authService) {
             if ($authService->getUserRole() !== 'admin') {
                 header("Location: /");
@@ -515,6 +515,15 @@ class KariApp
 
             $_SESSION['success'] = "Réclamation supprimée.";
             header("Location: /admin/reclamations");
+            exit;
+        });
+        $router->post('/admin/users/views', function () use ($authService) {
+            if ($authService->getUserRole() !== 'admin') {
+                header("Location: /");
+                exit;
+            }
+            echo "yet to come";
+            header("Location: /admin/users/view");
             exit;
         });
 

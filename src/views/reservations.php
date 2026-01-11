@@ -9,13 +9,13 @@ if (!isset($_SESSION['user_id'])) {
 
 use App\Repositories\Impl\ReservationRepository;
 use App\Repositories\Impl\LogementRepository;
-use App\Services\BookingService;
+use App\Services\ReservationService;
 
 $userId = $_SESSION['user_id'];
 
 $reservationRepository = new ReservationRepository();
 $logementRepository = new LogementRepository();
-$bookingService = new BookingService($reservationRepository, $logementRepository);
+$bookingService = new ReservationService($reservationRepository, $logementRepository);
 
 $reservations = $bookingService->getUserReservations($userId);
 ?>
