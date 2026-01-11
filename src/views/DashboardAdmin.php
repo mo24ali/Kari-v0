@@ -327,7 +327,6 @@ $recentLogements = array_slice($stats['recent_logements'], 0, 5);
                                 $start = new DateTime($res['start_date']);
                                 $end = new DateTime($res['end_date']);
                                 $days = $start->diff($end)->days + 1;
-                                $total = $days * $res['price'];
                                 ?>
                                 <tr class="hover:bg-gray-800/70 transition-colors">
                                     <td class="py-5 px-6">
@@ -344,7 +343,7 @@ $recentLogements = array_slice($stats['recent_logements'], 0, 5);
                                         <p class="text-xs text-gray-400"><?php echo $days; ?> nuit(s)</p>
                                     </td>
                                     <td class="py-5 px-6 font-black text-emerald-400">
-                                        <?php echo number_format($total, 2); ?>€
+                                        <?php echo number_format($stats['total_revenue'], 2) ?>€
                                     </td>
                                     <td class="py-5 px-6 text-right">
                                         <a href="/receipt?id=<?php echo $res['id']; ?>"

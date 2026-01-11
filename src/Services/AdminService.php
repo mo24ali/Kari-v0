@@ -104,7 +104,7 @@ class AdminService
 
     private function getTotalRevenue(): float
     {
-        $sql = "SELECT SUM(l.price * (DATEDIFF(r.end_date, r.start_date) + 1)) as total 
+        $sql = "SELECT SUM(l.price * (DATEDIFF(r.end_date, r.start_date))) as total 
                 FROM reservation r 
                 JOIN logement l ON r.id_log = l.id";
         $db = Database::getInstance()->getConnection();
