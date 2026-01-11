@@ -4,6 +4,8 @@ namespace App\Services\Impl;
 
 use App\Services\AuthService;
 
+use function App\dump_die;
+
 class SessionAuthService implements AuthService
 {
     public function __construct()
@@ -30,6 +32,7 @@ class SessionAuthService implements AuthService
 
     public function getUser(): ?array
     {
+        // dump_die($_SESSION['user']);
         return $_SESSION['user'] ?? null;
     }
 

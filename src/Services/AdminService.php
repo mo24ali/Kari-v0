@@ -6,6 +6,7 @@ use App\Repositories\Impl\UserRepository;
 use App\Repositories\Impl\LogementRepository;
 use App\Repositories\Impl\ReservationRepository;
 use App\Repositories\Impl\ImageRepository;
+use App\core\Database;
 
 class AdminService
 {
@@ -61,7 +62,7 @@ class AdminService
     private function getTotalReservations(): int
     {
         $sql = "SELECT COUNT(*) as total FROM reservation";
-        $db = \App\core\Database::getInstance()->getConnection();
+        $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -71,7 +72,7 @@ class AdminService
     private function getTotalReviews(): int
     {
         $sql = "SELECT COUNT(*) as total FROM Review";
-        $db = \App\core\Database::getInstance()->getConnection();
+        $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -81,7 +82,7 @@ class AdminService
     private function getTotalFavoris(): int
     {
         $sql = "SELECT COUNT(*) as total FROM Favoris";
-        $db = \App\core\Database::getInstance()->getConnection();
+        $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -91,7 +92,7 @@ class AdminService
     public function getTotalImages(): int
     {
         $sql = "SELECT COUNT(*) as total FROM images";
-        $db = \App\core\Database::getInstance()->getConnection();
+        $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
